@@ -28,6 +28,7 @@ import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.decompiler.ast.Expression;
+import lombok.RequiredArgsConstructor;
 import one.util.huntbugs.registry.ClassContext;
 import one.util.huntbugs.registry.anno.AstNodes;
 import one.util.huntbugs.registry.anno.AstVisitor;
@@ -49,6 +50,7 @@ import java.util.stream.Stream;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
+@RequiredArgsConstructor
 @WarningDefinition(category = "?", name = "CohesiveDetector", maxScore = CohesiveDetector.MAX_SCORE)
 public class CohesiveDetector {
 
@@ -58,6 +60,15 @@ public class CohesiveDetector {
 
     private Map<String, Set<String>> usedByMethod;
 
+    private final BeanMethods beanMethods;
+
+    private final MethodSignature methodSignature;
+
+    public CohesiveDetector() {
+        methodSignature = new DefaultMethodSignature();
+        beanMethods = new BeanMethodsImpl(methodSignature);
+    }
+
     /**
      * Analyse the class.
      *
@@ -66,7 +77,8 @@ public class CohesiveDetector {
     @ClassVisitor(order = VisitOrder.BEFORE)
     public void init(final TypeDefinition td) {
         final Set<String> fields = getDeclaredFieldNames(td);
-        final Predicate<MethodDefinition> isNonBeanMethod = methodDefinition -> !isBeanMethod(methodDefinition, fields);
+        final Predicate<MethodDefinition> isNonBeanMethod =
+                methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
         final Predicate<MethodDefinition> isNotConstructor = methodDefinition -> !methodDefinition.isConstructor();
         final Predicate<MethodDefinition> nonPrivate = methodDefinition -> !methodDefinition.isPrivate();
         final Stream<MethodDefinition> methodDefinitionStream = td.getDeclaredMethods()
@@ -74,7 +86,7 @@ public class CohesiveDetector {
                                                                   .filter(isNotConstructor)
                                                                   .filter(isNonBeanMethod);
         nonPrivateMethodNames = methodDefinitionStream.filter(nonPrivate)
-                                                      .map(this::getSignature)
+                                                      .map(this::createSignature)
                                                       .collect(Collectors.toSet());
 
         usedByMethod = new HashMap<>();
@@ -102,10 +114,6 @@ public class CohesiveDetector {
         System.out.println();
     }
 
-    private String getSignature(final MemberReference md) {
-        return md.getName() + md.getSignature();
-    }
-
     @AstVisitor(nodes = AstNodes.EXPRESSIONS)
     public boolean visit(final Expression expression, final MethodDefinition methodDefinition) {
         if (methodDefinition.isConstructor()) {
@@ -116,8 +124,8 @@ public class CohesiveDetector {
             final TypeDefinition myClass = methodDefinition.getDeclaringType();
             if (methodReference.getDeclaringType()
                                .isEquivalentTo(myClass)) {
-                final String calledMethod = getSignature(methodReference);
-                addUsedByMethod(getSignature(methodDefinition), calledMethod);
+                final String calledMethod = createSignature(methodReference);
+                addUsedByMethod(createSignature(methodDefinition), calledMethod);
             }
         }
         if (expression.getOperand() instanceof FieldReference) {
@@ -126,10 +134,14 @@ public class CohesiveDetector {
             if (fieldReference.getDeclaringType()
                               .isEquivalentTo(myClass)) {
                 final String usedField = fieldReference.getName();
-                addUsedByMethod(getSignature(methodDefinition), usedField);
+                addUsedByMethod(createSignature(methodDefinition), usedField);
             }
         }
         return true;
+    }
+
+    private String createSignature(final MemberReference memberReference) {
+        return methodSignature.create(memberReference);
     }
 
     private void addUsedByMethod(final String method, final String used) {
@@ -140,37 +152,6 @@ public class CohesiveDetector {
                     return set;
                 })
                 .add(used);
-    }
-
-    private boolean isBeanMethod(final MethodDefinition methodDefinition, final Set<String> fields) {
-        return isBeanMethod(getSignature(methodDefinition), fields);
-    }
-
-    private boolean isBeanMethod(final String method, final Set<String> fields) {
-        if (fields != null) {
-            final String methodName = method.toLowerCase();
-            return fields.stream()
-                         .anyMatch(field -> isBeanMethod(methodName, field));
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isBeanMethod(final String method, final String field) {
-        return isSetter(method, field) || isGetter(method, field);
-    }
-
-    private boolean isGetter(final String method, final String field) {
-        final boolean isPlainGetter = method.startsWith(String.format("get%s()", field));
-        final boolean isBooleanGetter = String.format("is%s()ljava/lang/boolean;", field)
-                                              .equals(method);
-        final boolean isPrimitiveBooleanGetter = String.format("is%s()z", field)
-                                                       .equals(method);
-        return isPlainGetter || isBooleanGetter || isPrimitiveBooleanGetter;
-    }
-
-    private boolean isSetter(final String method, final String field) {
-        return method.startsWith("set" + field + "([^)]") && method.endsWith(")v");
     }
 
     private Set<String> getDeclaredFieldNames(final TypeDefinition td) {
