@@ -22,13 +22,26 @@
 package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.FieldDefinition;
+import com.strobel.assembler.metadata.MemberReference;
 import com.strobel.assembler.metadata.MethodDefinition;
+import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
+import com.strobel.decompiler.ast.Expression;
 import one.util.huntbugs.registry.ClassContext;
+import one.util.huntbugs.registry.MethodContext;
+import one.util.huntbugs.registry.anno.AstNodes;
+import one.util.huntbugs.registry.anno.AstVisitor;
 import one.util.huntbugs.registry.anno.ClassVisitor;
+import one.util.huntbugs.registry.anno.VisitOrder;
 import one.util.huntbugs.registry.anno.WarningDefinition;
+import one.util.huntbugs.util.NodeChain;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,38 +55,93 @@ public class CohesiveDetector {
 
     static final int MAX_SCORE = 100;
 
+    private Set<String> nonPrivateMethodNames;
+
+    private Map<String, Set<String>> usedByMethod;
+
     /**
      * Analyse the class.
      *
      * @param td the class
-     * @param cc the context for reporting errors
      */
-    @ClassVisitor
-    public void analyse(final TypeDefinition td, final ClassContext cc) {
+    @ClassVisitor(order = VisitOrder.BEFORE)
+    public void init(final TypeDefinition td) {
         System.out.println();
+        System.out.println("CohesiveDetector.init");
         final String className = td.getFullName();
         System.out.println("className = " + className);
         final Set<String> fields = getDeclaredFieldNames(td);
         System.out.println("fields = " + fields);
+        final Predicate<MethodDefinition> isNonBeanMethod = methodDefinition -> !isBeanMethod(methodDefinition, fields);
+        final Predicate<MethodDefinition> isNotConstructor = methodDefinition -> !methodDefinition.isConstructor();
+        final Predicate<MethodDefinition> nonPrivate = methodDefinition -> !methodDefinition.isPrivate();
         final Stream<MethodDefinition> methodDefinitionStream = td.getDeclaredMethods()
                                                                   .stream()
-                                                                  .filter(methodDefinition -> !methodDefinition
-                                                                          .isConstructor())
-                                                                  .filter(methodDefinition -> !isBeanMethod(
-                                                                          methodDefinition, fields));
-        final Set<String> nonPrivateMethodNames =
-                methodDefinitionStream.filter(methodDefinition -> !methodDefinition.isPrivate())
-                                      .map(md -> md.getName() + md.getSignature())
-                                      .collect(Collectors.toSet());
-        System.out.println("nonPrivateMethodNames = \n" + nonPrivateMethodNames.stream()
-                                                                               .map(m -> " - " + m)
-                                                                               .collect(Collectors.joining("\n")));
+                                                                  .filter(isNotConstructor)
+                                                                  .filter(isNonBeanMethod);
+        nonPrivateMethodNames = methodDefinitionStream.filter(nonPrivate)
+                                                      .map(this::getSignature)
+                                                      .collect(Collectors.toSet());
 
+        usedByMethod = new HashMap<>();
+
+    }
+
+    /**
+     * Analyse the results of scanning the class.
+     *
+     * @param cc the context for reporting errors
+     */
+    @ClassVisitor(order = VisitOrder.AFTER)
+    public void analyse(final ClassContext cc) {
+        System.out.println("CohesiveDetector.analyse");
+        nonPrivateMethodNames.stream()
+                             .map(m -> "method: " + m)
+                             .forEach(System.out::println);
+        usedByMethod.keySet()
+                    .forEach(method -> {
+                        System.out.println("method = " + method);
+                        usedByMethod.get(method)
+                                    .forEach(used -> {
+                                        System.out.println("  used = " + used);
+                                    });
+                    });
         System.out.println();
     }
 
+    private String getSignature(final MemberReference md) {
+        return md.getName() + md.getSignature();
+    }
+
+    @AstVisitor(nodes = AstNodes.EXPRESSIONS)
+    public void visit(
+            final Expression expression, final NodeChain nodeChain, final MethodContext methodContext,
+            final MethodDefinition methodDefinition
+                     ) {
+        if (expression.getOperand() instanceof MethodReference) {
+            final MethodReference methodReference = (MethodReference) expression.getOperand();
+            final TypeDefinition myClass = methodDefinition.getDeclaringType();
+            if (methodReference.getDeclaringType()
+                               .isEquivalentTo(myClass)) {
+                final String calledMethod = getSignature(methodReference);
+                System.out.println(String.format("%s calls %s", methodDefinition, calledMethod));
+                addUsedByMethod(getSignature(methodDefinition), calledMethod);
+            }
+        }
+    }
+
+    private void addUsedByMethod(final String method, final String used) {
+        Optional.ofNullable(usedByMethod.get(method))
+                .orElseGet(() -> {
+                    final HashSet<String> set = new HashSet<>();
+                    usedByMethod.put(method, set);
+                    return set;
+                })
+                .add(used);
+    }
+
     private boolean isBeanMethod(final MethodDefinition methodDefinition, final Set<String> fields) {
-        return isBeanMethod(methodDefinition.getName() + methodDefinition.getSignature(), fields);
+        return isBeanMethod(getSignature(methodDefinition), fields);
     }
 
     private boolean isBeanMethod(final String method, final Set<String> fields) {
