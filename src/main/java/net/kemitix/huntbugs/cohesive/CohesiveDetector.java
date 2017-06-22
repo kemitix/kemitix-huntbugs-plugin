@@ -30,6 +30,7 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Detects classes that are not cohesive.
@@ -54,15 +55,19 @@ public class CohesiveDetector {
         System.out.println("className = " + className);
         final Set<String> fields = getDeclaredFieldNames(td);
         System.out.println("fields = " + fields);
-        final Set<String> methodNames = td.getDeclaredMethods()
-                                          .stream()
-                                          .filter(methodDefinition -> !methodDefinition.isConstructor())
-                                          .filter(methodDefinition -> !isBeanMethod(methodDefinition, fields))
-                                          .map(md -> md.getName() + md.getSignature())
-                                          .collect(Collectors.toSet());
-        System.out.println("methodNames = \n" + methodNames.stream()
-                                                           .map(m -> " - " + m)
-                                                           .collect(Collectors.joining("\n")));
+        final Stream<MethodDefinition> methodDefinitionStream = td.getDeclaredMethods()
+                                                                  .stream()
+                                                                  .filter(methodDefinition -> !methodDefinition
+                                                                          .isConstructor())
+                                                                  .filter(methodDefinition -> !isBeanMethod(
+                                                                          methodDefinition, fields));
+        final Set<String> nonPrivateMethodNames =
+                methodDefinitionStream.filter(methodDefinition -> !methodDefinition.isPrivate())
+                                      .map(md -> md.getName() + md.getSignature())
+                                      .collect(Collectors.toSet());
+        System.out.println("nonPrivateMethodNames = \n" + nonPrivateMethodNames.stream()
+                                                                               .map(m -> " - " + m)
+                                                                               .collect(Collectors.joining("\n")));
 
         System.out.println();
     }
