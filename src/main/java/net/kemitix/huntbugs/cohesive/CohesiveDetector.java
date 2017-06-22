@@ -107,7 +107,10 @@ public class CohesiveDetector {
     }
 
     @AstVisitor(nodes = AstNodes.EXPRESSIONS)
-    public void visit(final Expression expression, final MethodDefinition methodDefinition) {
+    public boolean visit(final Expression expression, final MethodDefinition methodDefinition) {
+        if (methodDefinition.isConstructor()) {
+            return false;
+        }
         if (expression.getOperand() instanceof MethodReference) {
             final MethodReference methodReference = (MethodReference) expression.getOperand();
             final TypeDefinition myClass = methodDefinition.getDeclaringType();
@@ -126,6 +129,7 @@ public class CohesiveDetector {
                 addUsedByMethod(getSignature(methodDefinition), usedField);
             }
         }
+        return true;
     }
 
     private void addUsedByMethod(final String method, final String used) {
