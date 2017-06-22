@@ -71,7 +71,7 @@ class BeanMethodsImpl implements BeanMethods {
     }
 
     private boolean isSetter(final String method, final String field) {
-        return method.startsWith("set" + field + "([^)]") && method.endsWith(")v");
+        return method.startsWith(("set" + field) + "(") && method.endsWith(")v") && !method.contains("()");
     }
 
 }
