@@ -2,7 +2,9 @@ package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.MethodDefinition;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -18,6 +20,9 @@ import static org.mockito.BDDMockito.given;
  * @author Paul Campbell (pcampbell@kemitix.net).
  */
 public class BeanMethodsImplTest {
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private BeanMethods beanMethods;
 
@@ -108,4 +113,45 @@ public class BeanMethodsImplTest {
         assertThat(result).isTrue();
     }
 
+    @Test
+    public void nonBeanWhenNoFields() {
+        //given
+        final String signature = "getName()";
+        given(methodSignature.create(methodDefinition)).willReturn(signature);
+        fields.clear();
+        //when
+        final boolean result = beanMethods.isNotBeanMethod(methodDefinition, fields);
+        //then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void nonBeanWhenNoMatchingFields() {
+        //given
+        final String signature = "getName()";
+        given(methodSignature.create(methodDefinition)).willReturn(signature);
+        fields.add("other");
+        //when
+        final boolean result = beanMethods.isNotBeanMethod(methodDefinition, fields);
+        //then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void NPEWhenMethodDefinitionIsNull() {
+        //given
+        exception.expect(NullPointerException.class);
+        exception.expectMessage("methodDefinition");
+        //when
+        beanMethods.isNotBeanMethod(null, fields);
+    }
+
+    @Test
+    public void NPEWhenFieldsIsNull() {
+        //given
+        exception.expect(NullPointerException.class);
+        exception.expectMessage("fields");
+        //when
+        beanMethods.isNotBeanMethod(methodDefinition, null);
+    }
 }

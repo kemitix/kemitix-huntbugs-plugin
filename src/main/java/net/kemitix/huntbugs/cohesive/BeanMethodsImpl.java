@@ -22,6 +22,7 @@
 package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.MethodDefinition;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
@@ -38,7 +39,7 @@ class BeanMethodsImpl implements BeanMethods {
 
     @Override
     public final boolean isNotBeanMethod(
-            final MethodDefinition methodDefinition, final Set<String> fields
+            @NonNull final MethodDefinition methodDefinition, @NonNull final Set<String> fields
                                         ) {
         return !isBeanMethod(methodDefinition, fields);
     }
@@ -48,13 +49,9 @@ class BeanMethodsImpl implements BeanMethods {
     }
 
     private boolean isBeanMethod(final String method, final Set<String> fields) {
-        if (fields != null) {
-            final String methodName = method.toLowerCase();
-            return fields.stream()
-                         .anyMatch(field -> isBeanMethod(methodName, field));
-        } else {
-            return false;
-        }
+        final String methodName = method.toLowerCase();
+        return fields.stream()
+                     .anyMatch(field -> isBeanMethod(methodName, field));
     }
 
     private boolean isBeanMethod(final String method, final String field) {
