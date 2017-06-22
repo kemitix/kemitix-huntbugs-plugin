@@ -43,7 +43,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Detects classes that are not cohesive.
@@ -56,14 +55,17 @@ public class CohesiveDetector {
 
     static final int MAX_SCORE = 100;
 
-    private Set<String> nonPrivateMethodNames;
-
-    private Map<String, Set<String>> usedByMethod;
-
     private final BeanMethods beanMethods;
 
     private final MethodSignature methodSignature;
 
+    private Set<String> nonPrivateMethodNames;
+
+    private Map<String, Set<String>> usedByMethod;
+
+    /**
+     * Default constructor.
+     */
     public CohesiveDetector() {
         methodSignature = new DefaultMethodSignature();
         beanMethods = new BeanMethodsImpl(methodSignature);
@@ -81,16 +83,14 @@ public class CohesiveDetector {
                 methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
         final Predicate<MethodDefinition> isNotConstructor = methodDefinition -> !methodDefinition.isConstructor();
         final Predicate<MethodDefinition> nonPrivate = methodDefinition -> !methodDefinition.isPrivate();
-        final Stream<MethodDefinition> methodDefinitionStream = td.getDeclaredMethods()
-                                                                  .stream()
-                                                                  .filter(isNotConstructor)
-                                                                  .filter(isNonBeanMethod);
-        nonPrivateMethodNames = methodDefinitionStream.filter(nonPrivate)
-                                                      .map(this::createSignature)
-                                                      .collect(Collectors.toSet());
-
+        nonPrivateMethodNames = td.getDeclaredMethods()
+                                  .stream()
+                                  .filter(isNotConstructor)
+                                  .filter(isNonBeanMethod)
+                                  .filter(nonPrivate)
+                                  .map(this::createSignature)
+                                  .collect(Collectors.toSet());
         usedByMethod = new HashMap<>();
-
     }
 
     /**
@@ -114,30 +114,50 @@ public class CohesiveDetector {
         System.out.println();
     }
 
+    /**
+     * Visitor for each expression within each method that records each field and method used.
+     *
+     * <p>n.b. excludes constructors</p>
+     *
+     * @param expression       the expression with
+     * @param methodDefinition the method containing the expression
+     *
+     * @return false if the method is a constructor and should not be processed any further, true for other methods
+     */
     @AstVisitor(nodes = AstNodes.EXPRESSIONS)
-    public boolean visit(final Expression expression, final MethodDefinition methodDefinition) {
+    public final boolean visit(final Expression expression, final MethodDefinition methodDefinition) {
         if (methodDefinition.isConstructor()) {
             return false;
         }
-        if (expression.getOperand() instanceof MethodReference) {
-            final MethodReference methodReference = (MethodReference) expression.getOperand();
-            final TypeDefinition myClass = methodDefinition.getDeclaringType();
-            if (methodReference.getDeclaringType()
-                               .isEquivalentTo(myClass)) {
-                final String calledMethod = createSignature(methodReference);
-                addUsedByMethod(createSignature(methodDefinition), calledMethod);
-            }
-        }
-        if (expression.getOperand() instanceof FieldReference) {
-            final FieldReference fieldReference = (FieldReference) expression.getOperand();
-            final TypeDefinition myClass = methodDefinition.getDeclaringType();
-            if (fieldReference.getDeclaringType()
-                              .isEquivalentTo(myClass)) {
-                final String usedField = fieldReference.getName();
-                addUsedByMethod(createSignature(methodDefinition), usedField);
-            }
-        }
+        handleMethodReference(expression, methodDefinition);
+        handleFieldReference(expression, methodDefinition);
         return true;
+    }
+
+    private void handleFieldReference(final Expression expression, final MethodDefinition methodDefinition) {
+        if (expression.getOperand() instanceof FieldReference) {
+            visitFieldReference((FieldReference) expression.getOperand(), methodDefinition);
+        }
+    }
+
+    private void handleMethodReference(final Expression expression, final MethodDefinition methodDefinition) {
+        if (expression.getOperand() instanceof MethodReference) {
+            visitMethodReference((MethodReference) expression.getOperand(), methodDefinition);
+        }
+    }
+
+    private void visitFieldReference(final FieldReference fieldReference, final MethodDefinition methodDefinition) {
+        if (fieldReference.getDeclaringType()
+                          .isEquivalentTo(methodDefinition.getDeclaringType())) {
+            addUsedByMethod(createSignature(methodDefinition), fieldReference.getName());
+        }
+    }
+
+    private void visitMethodReference(final MethodReference methodReference, final MethodDefinition methodDefinition) {
+        if (methodReference.getDeclaringType()
+                           .isEquivalentTo(methodDefinition.getDeclaringType())) {
+            addUsedByMethod(createSignature(methodDefinition), createSignature(methodReference));
+        }
     }
 
     private String createSignature(final MemberReference memberReference) {
@@ -147,9 +167,8 @@ public class CohesiveDetector {
     private void addUsedByMethod(final String method, final String used) {
         Optional.ofNullable(usedByMethod.get(method))
                 .orElseGet(() -> {
-                    final HashSet<String> set = new HashSet<>();
-                    usedByMethod.put(method, set);
-                    return set;
+                    usedByMethod.put(method, new HashSet<>());
+                    return usedByMethod.get(method);
                 })
                 .add(used);
     }
