@@ -22,19 +22,18 @@
 package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.FieldDefinition;
+import com.strobel.assembler.metadata.FieldReference;
 import com.strobel.assembler.metadata.MemberReference;
 import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.decompiler.ast.Expression;
 import one.util.huntbugs.registry.ClassContext;
-import one.util.huntbugs.registry.MethodContext;
 import one.util.huntbugs.registry.anno.AstNodes;
 import one.util.huntbugs.registry.anno.AstVisitor;
 import one.util.huntbugs.registry.anno.ClassVisitor;
 import one.util.huntbugs.registry.anno.VisitOrder;
 import one.util.huntbugs.registry.anno.WarningDefinition;
-import one.util.huntbugs.util.NodeChain;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,12 +65,7 @@ public class CohesiveDetector {
      */
     @ClassVisitor(order = VisitOrder.BEFORE)
     public void init(final TypeDefinition td) {
-        System.out.println();
-        System.out.println("CohesiveDetector.init");
-        final String className = td.getFullName();
-        System.out.println("className = " + className);
         final Set<String> fields = getDeclaredFieldNames(td);
-        System.out.println("fields = " + fields);
         final Predicate<MethodDefinition> isNonBeanMethod = methodDefinition -> !isBeanMethod(methodDefinition, fields);
         final Predicate<MethodDefinition> isNotConstructor = methodDefinition -> !methodDefinition.isConstructor();
         final Predicate<MethodDefinition> nonPrivate = methodDefinition -> !methodDefinition.isPrivate();
@@ -94,7 +88,6 @@ public class CohesiveDetector {
      */
     @ClassVisitor(order = VisitOrder.AFTER)
     public void analyse(final ClassContext cc) {
-        System.out.println("CohesiveDetector.analyse");
         nonPrivateMethodNames.stream()
                              .map(m -> "method: " + m)
                              .forEach(System.out::println);
@@ -114,18 +107,23 @@ public class CohesiveDetector {
     }
 
     @AstVisitor(nodes = AstNodes.EXPRESSIONS)
-    public void visit(
-            final Expression expression, final NodeChain nodeChain, final MethodContext methodContext,
-            final MethodDefinition methodDefinition
-                     ) {
+    public void visit(final Expression expression, final MethodDefinition methodDefinition) {
         if (expression.getOperand() instanceof MethodReference) {
             final MethodReference methodReference = (MethodReference) expression.getOperand();
             final TypeDefinition myClass = methodDefinition.getDeclaringType();
             if (methodReference.getDeclaringType()
                                .isEquivalentTo(myClass)) {
                 final String calledMethod = getSignature(methodReference);
-                System.out.println(String.format("%s calls %s", methodDefinition, calledMethod));
                 addUsedByMethod(getSignature(methodDefinition), calledMethod);
+            }
+        }
+        if (expression.getOperand() instanceof FieldReference) {
+            final FieldReference fieldReference = (FieldReference) expression.getOperand();
+            final TypeDefinition myClass = methodDefinition.getDeclaringType();
+            if (fieldReference.getDeclaringType()
+                              .isEquivalentTo(myClass)) {
+                final String usedField = fieldReference.getName();
+                addUsedByMethod(getSignature(methodDefinition), usedField);
             }
         }
     }
