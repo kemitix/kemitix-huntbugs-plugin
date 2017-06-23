@@ -139,24 +139,27 @@ public class CohesiveDetector {
         }
     }
 
+    private void visitFieldReference(final FieldReference fieldReference, final MethodDefinition methodDefinition) {
+        if (areEquivalent(fieldReference, methodDefinition)) {
+            addUsedByMethod(createSignature(methodDefinition), fieldReference.getName());
+        }
+    }
+
     private void handleMethodReference(final Object operand, final MethodDefinition methodDefinition) {
         if (operand instanceof MethodReference) {
             visitMethodReference((MethodReference) operand, methodDefinition);
         }
     }
 
-    private void visitFieldReference(final FieldReference fieldReference, final MethodDefinition methodDefinition) {
-        if (fieldReference.getDeclaringType()
-                          .isEquivalentTo(methodDefinition.getDeclaringType())) {
-            addUsedByMethod(createSignature(methodDefinition), fieldReference.getName());
+    private void visitMethodReference(final MethodReference methodReference, final MethodDefinition methodDefinition) {
+        if (areEquivalent(methodReference, methodDefinition)) {
+            addUsedByMethod(createSignature(methodDefinition), createSignature(methodReference));
         }
     }
 
-    private void visitMethodReference(final MethodReference methodReference, final MethodDefinition methodDefinition) {
-        if (methodReference.getDeclaringType()
-                           .isEquivalentTo(methodDefinition.getDeclaringType())) {
-            addUsedByMethod(createSignature(methodDefinition), createSignature(methodReference));
-        }
+    private boolean areEquivalent(final MemberReference memberReference, final MethodDefinition methodDefinition) {
+        return memberReference.getDeclaringType()
+                              .isEquivalentTo(methodDefinition.getDeclaringType());
     }
 
     private String createSignature(final MemberReference memberReference) {
