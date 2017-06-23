@@ -31,8 +31,8 @@ class TestNonCohesive {
         return fullFormat;
     }
 
-    public String sayHello(final TestCohesive name) {
-        return String.format(getFullFormat("ignore me"), name);
+    public String sayHello(final OtherClass name) {
+        return String.format(getFullFormat("ignore me"), name.object);
     }
 
     public Boolean isCounter() {
@@ -43,4 +43,8 @@ class TestNonCohesive {
         counter = value;
     }
 
+    private class OtherClass {
+
+        Object object;
+    }
 }
