@@ -55,6 +55,11 @@ public class CohesiveDetectorTest {
     @Mock
     private MethodDefinitionWrapper methodDefinitionWrapper;
 
+    @Mock
+    private MethodDefinition constructorMethodDefinition;
+
+    private String constructorMethodSignature;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -85,5 +90,22 @@ public class CohesiveDetectorTest {
         given(methodDefinitionWrapper.isPrivate(privateMethodDefinition)).willReturn(true);
         given(methodSignature.create(privateMethodDefinition)).willReturn(privateMethodSignature);
         declaredMethods.add(privateMethodDefinition);
+    }
+
+    @Test
+    public void canDetectConstructorMethods() {
+        //given
+        hasConstructor();
+        //when
+        detector.init(typeDefinition);
+        //then
+        assertThat(nonPrivateMethodNames).doesNotContain(constructorMethodSignature);
+    }
+
+    private void hasConstructor() {
+        constructorMethodSignature = randomString();
+        given(methodDefinitionWrapper.isConstructor(constructorMethodDefinition)).willReturn(true);
+        given(methodSignature.create(constructorMethodDefinition)).willReturn(constructorMethodSignature);
+        declaredMethods.add(constructorMethodDefinition);
     }
 }
