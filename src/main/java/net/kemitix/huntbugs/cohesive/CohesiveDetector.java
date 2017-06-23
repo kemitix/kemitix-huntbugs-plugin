@@ -127,20 +127,21 @@ public class CohesiveDetector {
         if (methodDefinition.isConstructor()) {
             return false;
         }
-        handleMethodReference(expression, methodDefinition);
-        handleFieldReference(expression, methodDefinition);
+        final Object operand = expression.getOperand();
+        handleMethodReference(operand, methodDefinition);
+        handleFieldReference(operand, methodDefinition);
         return true;
     }
 
-    private void handleFieldReference(final Expression expression, final MethodDefinition methodDefinition) {
-        if (expression.getOperand() instanceof FieldReference) {
-            visitFieldReference((FieldReference) expression.getOperand(), methodDefinition);
+    private void handleFieldReference(final Object operand, final MethodDefinition methodDefinition) {
+        if (operand instanceof FieldReference) {
+            visitFieldReference((FieldReference) operand, methodDefinition);
         }
     }
 
-    private void handleMethodReference(final Expression expression, final MethodDefinition methodDefinition) {
-        if (expression.getOperand() instanceof MethodReference) {
-            visitMethodReference((MethodReference) expression.getOperand(), methodDefinition);
+    private void handleMethodReference(final Object operand, final MethodDefinition methodDefinition) {
+        if (operand instanceof MethodReference) {
+            visitMethodReference((MethodReference) operand, methodDefinition);
         }
     }
 
