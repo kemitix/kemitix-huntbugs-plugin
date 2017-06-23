@@ -3,6 +3,7 @@ package net.kemitix.huntbugs.cohesive;
 import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.TypeDefinition;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -107,5 +108,50 @@ public class CohesiveDetectorTest {
         given(methodDefinitionWrapper.isConstructor(constructorMethodDefinition)).willReturn(true);
         given(methodSignature.create(constructorMethodDefinition)).willReturn(constructorMethodSignature);
         declaredMethods.add(constructorMethodDefinition);
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void canDetectPrivateMethods() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void canDetectBeanMethods() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void canDetectNonBeanMethods() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void skipsWhenConstructor() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void handleFieldInSameClass() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void ignoreFieldInOtherClass() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void handleMethodCallInSameClass() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void ignoreMethodCallInOtherClass() {
+    }
+
+    @Test
+    @Ignore("TODO")
+    public void methodCanUseMulitpleItems() {
     }
 }
