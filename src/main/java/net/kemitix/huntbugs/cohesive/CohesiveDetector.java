@@ -28,6 +28,7 @@ import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.decompiler.ast.Expression;
+import lombok.RequiredArgsConstructor;
 import one.util.huntbugs.registry.ClassContext;
 import one.util.huntbugs.registry.anno.AstNodes;
 import one.util.huntbugs.registry.anno.AstVisitor;
@@ -37,6 +38,7 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +50,7 @@ import java.util.stream.Collectors;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
+@RequiredArgsConstructor
 @WarningDefinition(category = "?", name = "CohesiveDetector", maxScore = CohesiveDetector.MAX_SCORE)
 public class CohesiveDetector {
 
@@ -57,9 +60,13 @@ public class CohesiveDetector {
 
     private final MethodSignature methodSignature;
 
-    private Set<String> nonPrivateMethodNames;
+    private final TypeDefinitionWrapper typeDefinitionWrapper;
 
-    private Map<String, Set<String>> usedByMethod;
+    private final MethodDefinitionWrapper methodDefinitionWrapper;
+
+    private final Set<String> nonPrivateMethodNames;
+
+    private final Map<String, Set<String>> usedByMethod;
 
     /**
      * Default constructor.
@@ -67,10 +74,14 @@ public class CohesiveDetector {
     public CohesiveDetector() {
         methodSignature = new DefaultMethodSignature();
         beanMethods = new BeanMethodsImpl(methodSignature);
+        typeDefinitionWrapper = new TypeDefinitionWrapperImpl();
+        methodDefinitionWrapper = new MethodDefinitionWrapperImpl();
+        nonPrivateMethodNames = new HashSet<>();
+        usedByMethod = new HashMap<>();
     }
 
     /**
-     * Analyse the class.
+     * Prepare to analyse the class.
      *
      * @param td the class
      */
@@ -79,16 +90,29 @@ public class CohesiveDetector {
         final Set<String> fields = getDeclaredFieldNames(td);
         final Predicate<MethodDefinition> isNonBeanMethod =
                 methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
-        final Predicate<MethodDefinition> isNotConstructor = methodDefinition -> !methodDefinition.isConstructor();
-        final Predicate<MethodDefinition> nonPrivate = methodDefinition -> !methodDefinition.isPrivate();
-        nonPrivateMethodNames = td.getDeclaredMethods()
-                                  .stream()
-                                  .filter(isNotConstructor)
-                                  .filter(isNonBeanMethod)
-                                  .filter(nonPrivate)
-                                  .map(this::createSignature)
-                                  .collect(Collectors.toSet());
-        usedByMethod = new HashMap<>();
+        final Predicate<MethodDefinition> isNotConstructor =
+                methodDefinition -> !methodDefinitionWrapper.isConstructor(methodDefinition);
+        final Predicate<MethodDefinition> isNonPrivate =
+                methodDefinition -> !methodDefinitionWrapper.isPrivate(methodDefinition);
+        usedByMethod.clear();
+        nonPrivateMethodNames.clear();
+        nonPrivateMethodNames.addAll(getDeclaredMethods(td).stream()
+                                                           .filter(isNotConstructor)
+                                                           .filter(isNonPrivate)
+                                                           .filter(isNonBeanMethod)
+                                                           .map(this::createSignature)
+                                                           .collect(Collectors.toSet()));
+    }
+
+    private List<MethodDefinition> getDeclaredMethods(final TypeDefinition td) {
+        return typeDefinitionWrapper.getDeclaredMethods(td);
+    }
+
+    private Set<String> getDeclaredFieldNames(final TypeDefinition td) {
+        return typeDefinitionWrapper.getDeclaredFields(td)
+                                    .stream()
+                                    .map(FieldDefinition::getName)
+                                    .collect(Collectors.toSet());
     }
 
     /**
@@ -173,12 +197,5 @@ public class CohesiveDetector {
                     return usedByMethod.get(method);
                 })
                 .add(used);
-    }
-
-    private Set<String> getDeclaredFieldNames(final TypeDefinition td) {
-        return td.getDeclaredFields()
-                 .stream()
-                 .map(FieldDefinition::getName)
-                 .collect(Collectors.toSet());
     }
 }
