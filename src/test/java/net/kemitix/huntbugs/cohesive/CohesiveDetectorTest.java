@@ -1,7 +1,10 @@
 package net.kemitix.huntbugs.cohesive;
 
+import com.strobel.assembler.metadata.FieldReference;
+import com.strobel.assembler.metadata.MemberReference;
 import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.TypeDefinition;
+import com.strobel.assembler.metadata.TypeReference;
 import com.strobel.decompiler.ast.AstCode;
 import com.strobel.decompiler.ast.Expression;
 import org.junit.Before;
@@ -77,12 +80,11 @@ public class CohesiveDetectorTest {
 
     private Expression expression;
 
-    private AstCode astCode;
+    @Mock
+    private FieldReference fieldReference;
 
     @Mock
-    private Object operand;
-
-    private int offset;
+    private TypeReference memberDeclaringType;
 
     @Before
     public void setUp() {
@@ -91,8 +93,7 @@ public class CohesiveDetectorTest {
                                         nonPrivateMethodNames, usedByMethod
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
-        astCode = AstCode.Nop;
-        expression = new Expression(astCode, operand, offset);
+        expression = new Expression(AstCode.Nop, null, 0);
     }
 
     private String randomString() {
@@ -202,8 +203,26 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    @Ignore("TODO")
     public void handleFieldInSameClass() {
+        //given
+        hasNonPrivateNonBeanMethod();
+        final String fieldName = randomString();
+        setAsFieldReference(fieldName);
+        setAsInSameClass(fieldReference, true);
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(fieldName);
+    }
+
+    private void setAsInSameClass(final MemberReference memberReference, final boolean value) {
+        given(memberReference.getDeclaringType()).willReturn(memberDeclaringType);
+        given(memberDeclaringType.isEquivalentTo(any())).willReturn(value);
+    }
+
+    private void setAsFieldReference(final String fieldName) {
+        given(fieldReference.getName()).willReturn(fieldName);
+        expression.setOperand(fieldReference);
     }
 
     @Test
