@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -61,6 +63,11 @@ public class CohesiveDetectorTest {
 
     private String constructorMethodSignature;
 
+    @Mock
+    private MethodDefinition nonPrivateMethodDefinition;
+
+    private String nonPrivateMethodSignature;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -76,7 +83,7 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    public void canDetectNonPrivateMethods() {
+    public void excludePrivateMethods() {
         //given
         hasPrivateMethod();
         //when
@@ -87,14 +94,28 @@ public class CohesiveDetectorTest {
 
     private void hasPrivateMethod() {
         privateMethodSignature = randomString();
-        given(methodDefinitionWrapper.isConstructor(privateMethodDefinition)).willReturn(false);
-        given(methodDefinitionWrapper.isPrivate(privateMethodDefinition)).willReturn(true);
-        given(methodSignature.create(privateMethodDefinition)).willReturn(privateMethodSignature);
+        setAsSignature(privateMethodDefinition, privateMethodSignature);
+        setAsConstructor(privateMethodDefinition, false);
+        setAsPrivate(privateMethodDefinition, true);
         declaredMethods.add(privateMethodDefinition);
     }
 
+    private void setAsSignature(final MethodDefinition methodDefinition, final String signature) {
+        given(methodSignature.create(methodDefinition)).willReturn(signature);
+    }
+
+    private void setAsPrivate(final MethodDefinition methodDefinition, final boolean value) {
+        given(methodDefinitionWrapper.isPrivate(methodDefinition)).willReturn(value);
+    }
+
+    private void setAsConstructor(
+            final MethodDefinition methodDefinition, final boolean value
+                                 ) {
+        given(methodDefinitionWrapper.isConstructor(methodDefinition)).willReturn(value);
+    }
+
     @Test
-    public void canDetectConstructorMethods() {
+    public void excludeConstructorMethods() {
         //given
         hasConstructor();
         //when
@@ -105,29 +126,37 @@ public class CohesiveDetectorTest {
 
     private void hasConstructor() {
         constructorMethodSignature = randomString();
-        given(methodDefinitionWrapper.isConstructor(constructorMethodDefinition)).willReturn(true);
-        given(methodSignature.create(constructorMethodDefinition)).willReturn(constructorMethodSignature);
+        setAsSignature(constructorMethodDefinition, constructorMethodSignature);
+        setAsConstructor(constructorMethodDefinition, true);
         declaredMethods.add(constructorMethodDefinition);
     }
 
     @Test
-    @Ignore("TODO")
-    public void canDetectPrivateMethods() {
+    public void includeNonPrivateNonBeanMethods() {
+        //given
+        hasNonPrivateNonBeanMethod();
+        //when
+        detector.init(typeDefinition);
+        //then
+        assertThat(nonPrivateMethodNames).contains(nonPrivateMethodSignature);
+    }
+
+    private void hasNonPrivateNonBeanMethod() {
+        nonPrivateMethodSignature = randomString();
+        setAsSignature(nonPrivateMethodDefinition, nonPrivateMethodSignature);
+        setAsConstructor(nonPrivateMethodDefinition, false);
+        setAsPrivate(nonPrivateMethodDefinition, false);
+        setAsBean(nonPrivateMethodDefinition, false);
+        declaredMethods.add(nonPrivateMethodDefinition);
+    }
+
+    private void setAsBean(final MethodDefinition methodDefinition, final boolean value) {
+        given(beanMethods.isNotBeanMethod(eq(methodDefinition), any())).willReturn(!value);
     }
 
     @Test
     @Ignore("TODO")
-    public void canDetectBeanMethods() {
-    }
-
-    @Test
-    @Ignore("TODO")
-    public void canDetectNonBeanMethods() {
-    }
-
-    @Test
-    @Ignore("TODO")
-    public void skipsWhenConstructor() {
+    public void excludeBeanMethods() {
     }
 
     @Test
