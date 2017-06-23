@@ -2,6 +2,8 @@ package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.MethodDefinition;
 import com.strobel.assembler.metadata.TypeDefinition;
+import com.strobel.decompiler.ast.AstCode;
+import com.strobel.decompiler.ast.Expression;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -73,6 +75,15 @@ public class CohesiveDetectorTest {
 
     private String beanMethodSignature;
 
+    private Expression expression;
+
+    private AstCode astCode;
+
+    @Mock
+    private Object operand;
+
+    private int offset;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -80,6 +91,8 @@ public class CohesiveDetectorTest {
                                         nonPrivateMethodNames, usedByMethod
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
+        astCode = AstCode.Nop;
+        expression = new Expression(astCode, operand, offset);
     }
 
     private String randomString() {
@@ -176,6 +189,16 @@ public class CohesiveDetectorTest {
         setAsPrivate(beanMethodDefinition, false);
         setAsBean(beanMethodDefinition, true);
         declaredMethods.add(beanMethodDefinition);
+    }
+
+    @Test
+    public void skipMethodWhenConstructor() {
+        //given
+        hasConstructor();
+        //when
+        final boolean result = detector.visit(expression, constructorMethodDefinition);
+        //then
+        assertThat(result).isFalse();
     }
 
     @Test

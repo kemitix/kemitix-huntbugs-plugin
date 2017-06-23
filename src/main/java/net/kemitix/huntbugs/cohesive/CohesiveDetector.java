@@ -148,7 +148,7 @@ public class CohesiveDetector {
      */
     @AstVisitor(nodes = AstNodes.EXPRESSIONS)
     public final boolean visit(final Expression expression, final MethodDefinition methodDefinition) {
-        if (methodDefinition.isConstructor()) {
+        if (methodDefinitionWrapper.isConstructor(methodDefinition)) {
             return false;
         }
         final Object operand = expression.getOperand();
