@@ -68,6 +68,11 @@ public class CohesiveDetectorTest {
 
     private String nonPrivateMethodSignature;
 
+    @Mock
+    private MethodDefinition beanMethodDefinition;
+
+    private String beanMethodSignature;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -155,8 +160,22 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    @Ignore("TODO")
     public void excludeBeanMethods() {
+        //given
+        hasBeanMethod();
+        //when
+        detector.init(typeDefinition);
+        //then
+        assertThat(nonPrivateMethodNames).doesNotContain(beanMethodSignature);
+    }
+
+    private void hasBeanMethod() {
+        beanMethodSignature = randomString();
+        setAsSignature(beanMethodDefinition, beanMethodSignature);
+        setAsConstructor(beanMethodDefinition, false);
+        setAsPrivate(beanMethodDefinition, false);
+        setAsBean(beanMethodDefinition, true);
+        declaredMethods.add(beanMethodDefinition);
     }
 
     @Test
