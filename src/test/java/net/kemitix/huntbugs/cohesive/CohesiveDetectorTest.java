@@ -3,12 +3,12 @@ package net.kemitix.huntbugs.cohesive;
 import com.strobel.assembler.metadata.FieldReference;
 import com.strobel.assembler.metadata.MemberReference;
 import com.strobel.assembler.metadata.MethodDefinition;
+import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.assembler.metadata.TypeReference;
 import com.strobel.decompiler.ast.AstCode;
 import com.strobel.decompiler.ast.Expression;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -86,6 +86,9 @@ public class CohesiveDetectorTest {
     @Mock
     private TypeReference memberDeclaringType;
 
+    @Mock
+    private MethodReference methodReference;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -94,6 +97,7 @@ public class CohesiveDetectorTest {
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
         expression = new Expression(AstCode.Nop, null, 0);
+        nonPrivateMethodSignature = randomString();
     }
 
     private String randomString() {
@@ -161,7 +165,6 @@ public class CohesiveDetectorTest {
     }
 
     private void hasNonPrivateNonBeanMethod() {
-        nonPrivateMethodSignature = randomString();
         setAsSignature(nonPrivateMethodDefinition, nonPrivateMethodSignature);
         setAsConstructor(nonPrivateMethodDefinition, false);
         setAsPrivate(nonPrivateMethodDefinition, false);
@@ -205,14 +208,20 @@ public class CohesiveDetectorTest {
     @Test
     public void handleFieldInSameClass() {
         //given
+        final String fieldName = hasFieldInSameClass();
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
+        assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(fieldName);
+    }
+
+    private String hasFieldInSameClass() {
         hasNonPrivateNonBeanMethod();
         final String fieldName = randomString();
         setAsFieldReference(fieldName);
         setAsInSameClass(fieldReference, true);
-        //when
-        detector.visit(expression, nonPrivateMethodDefinition);
-        //then
-        assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(fieldName);
+        return fieldName;
     }
 
     private void setAsInSameClass(final MemberReference memberReference, final boolean value) {
@@ -239,17 +248,53 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    @Ignore("TODO")
     public void handleMethodCallInSameClass() {
+        //given
+        hasMethodCallInSameClass();
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
+        assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(privateMethodSignature);
+    }
+
+    private void hasMethodCallInSameClass() {
+        hasNonPrivateNonBeanMethod();
+        hasPrivateMethod();
+        setAsMethodReference(privateMethodSignature);
+        setAsInSameClass(methodReference, true);
+    }
+
+    private void setAsMethodReference(final String signature) {
+        given(methodSignature.create(methodReference)).willReturn(signature);
+        expression.setOperand(methodReference);
     }
 
     @Test
-    @Ignore("TODO")
     public void ignoreMethodCallInOtherClass() {
+        //given
+        hasNonPrivateNonBeanMethod();
+        hasPrivateMethod();
+        setAsMethodReference(privateMethodSignature);
+        setAsInSameClass(methodReference, false);
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod).isEmpty();
     }
 
     @Test
-    @Ignore("TODO")
     public void methodCanUseMulitpleItems() {
+        //given
+        hasMethodCallInSameClass();
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //given
+        final String fieldName = hasFieldInSameClass();
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
+        assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(privateMethodSignature, fieldName);
     }
 }
