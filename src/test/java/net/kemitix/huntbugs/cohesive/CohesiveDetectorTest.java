@@ -226,8 +226,16 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    @Ignore("TODO")
     public void ignoreFieldInOtherClass() {
+        //given
+        hasNonPrivateNonBeanMethod();
+        final String fieldName = randomString();
+        setAsFieldReference(fieldName);
+        setAsInSameClass(fieldReference, false);
+        //when
+        detector.visit(expression, nonPrivateMethodDefinition);
+        //then
+        assertThat(usedByMethod).isEmpty();
     }
 
     @Test
