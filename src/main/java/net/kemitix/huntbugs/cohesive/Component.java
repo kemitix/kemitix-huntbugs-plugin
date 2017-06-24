@@ -24,6 +24,7 @@ package net.kemitix.huntbugs.cohesive;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Prepresents a collections of cohesive methods and fields within a class.
@@ -65,8 +66,14 @@ public final class Component {
         members.addAll(component.getMembers());
     }
 
-    @Override
-    public String toString() {
-        return String.join(", ", members);
+    /**
+     * Gets all the methods in the component.
+     *
+     * @return a comma delimited string of method signatures
+     */
+    public String methods() {
+        return members.stream()
+                      .filter(member -> member.contains("("))
+                      .collect(Collectors.joining(", "));
     }
 }
