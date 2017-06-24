@@ -4,11 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://raw.githubusercontent.com/amaembo/huntbugs/master/huntbugs/src/main/resources/huntbugs messages.xsd">
     <WarningList>
-        <Warning Type="CohesiveDetector">
-            <Title>Detects classes that are not cohesive</Title>
-            <Description>Checks for classes that should be split.</Description>
-            <LongDescription>
-                <![CDATA[Checks that all the non-private methods of a class form a single logical component within the class. Where there is no overlap between the methods and fields used between two non-private methods, then the class is not-considered to be cohesive, and this test will fail. Such classes can and should be split into two, or more, classes.]]></LongDescription>
+        <Warning Type="CohesiveDetectorMultipleComponents">
+            <Title>Class is non-cohesive as it consists of multiple components</Title>
+            <Description>Class $TYPE$ consists of $COUNT$ components</Description>
+            <LongDescription><![CDATA[The class $TYPE$ is non-cohesive as it consists of $COUNT$ components:
+            $BREAKDOWN$]]></LongDescription>
         </Warning>
     </WarningList>
 </p:Messages>

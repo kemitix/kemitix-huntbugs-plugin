@@ -147,11 +147,9 @@ public class CohesiveDetector {
         final Set<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {
-            final String format = "Class consists of %d discrete components:%n%s";
-            final String message = String.format(format, size, components.stream()
-                                                                         .map(Object::toString)
-                                                                         .collect(Collectors.joining(
-                                                                                 System.lineSeparator())));
+            final String message = components.stream()
+                                             .map(Object::toString)
+                                             .collect(Collectors.joining(System.lineSeparator()));
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
         }
     }
