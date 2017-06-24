@@ -30,7 +30,7 @@ import com.strobel.assembler.metadata.MethodDefinition;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-interface MethodDefinitionWrapper {
+public interface MethodDefinitionWrapper {
 
     /**
      * Checks if the method definition is for a constructor.
@@ -49,4 +49,13 @@ interface MethodDefinitionWrapper {
      * @return true if the method definition is for a private method
      */
     boolean isPrivate(MethodDefinition methodDefinition);
+
+    /**
+     * Create an instance of the default implementation of {@link MethodDefinitionWrapper}.
+     *
+     * @return an instance of MethodDefinitionWrapper
+     */
+    static MethodDefinitionWrapper defaultInstance() {
+        return new MethodDefinitionWrapperImpl();
+    }
 }

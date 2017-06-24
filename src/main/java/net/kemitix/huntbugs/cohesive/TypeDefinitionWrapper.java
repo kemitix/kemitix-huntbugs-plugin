@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-interface TypeDefinitionWrapper {
+public interface TypeDefinitionWrapper {
 
     /**
      * Get a list of the declared fields.
@@ -53,4 +53,13 @@ interface TypeDefinitionWrapper {
      * @return a List of MethodDefinition
      */
     List<MethodDefinition> getDeclaredMethods(TypeDefinition typeDefinition);
+
+    /**
+     * Create an instance of the default implementation of {@link TypeDefinitionWrapper}.
+     *
+     * @return an instance of TypeDefinitionWrapper
+     */
+    static TypeDefinitionWrapper defaultInstance() {
+        return new TypeDefinitionWrapperImpl();
+    }
 }

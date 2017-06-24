@@ -28,7 +28,7 @@ import com.strobel.assembler.metadata.MemberReference;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-interface MethodSignature {
+public interface MethodSignature {
 
     /**
      * Create a method signature for the member.
@@ -38,4 +38,13 @@ interface MethodSignature {
      * @return the signature
      */
     String create(MemberReference memberReference);
+
+    /**
+     * Create an instance of the default implementation of {@link MethodSignature}.
+     *
+     * @return an instance of MethodSignature
+     */
+    static MethodSignature defaultInstance() {
+        return new DefaultMethodSignature();
+    }
 }

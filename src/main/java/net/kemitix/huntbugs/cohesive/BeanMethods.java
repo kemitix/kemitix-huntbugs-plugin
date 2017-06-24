@@ -30,7 +30,7 @@ import java.util.Set;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-interface BeanMethods {
+public interface BeanMethods {
 
     /**
      * Identify if the method is a bean method or not.
@@ -44,4 +44,14 @@ interface BeanMethods {
      */
     boolean isNotBeanMethod(MethodDefinition methodDefinition, Set<String> fields);
 
+    /**
+     * Create an instance of the default implementation of {@link BeanMethods}.
+     *
+     * @param methodSignature the method signature builder
+     *
+     * @return an instance of BeanMethods
+     */
+    static BeanMethods defaultInstance(MethodSignature methodSignature) {
+        return new BeanMethodsImpl(methodSignature);
+    }
 }
