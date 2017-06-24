@@ -1,9 +1,10 @@
 package net.kemitix.huntbugs.testdata;
 
+import net.kemitix.huntbugs.detect.CohesiveDetector;
 import one.util.huntbugs.registry.anno.AssertWarning;
 
-@AssertWarning("CohesiveDetector")
-class TestNonCohesive {
+@AssertWarning(CohesiveDetector.MULTIPLE_COMPONENTS)
+public class TestNonCohesive {
 
     private String left;
 

@@ -21,6 +21,7 @@
 
 package net.kemitix.huntbugs.testdata;
 
+import net.kemitix.huntbugs.detect.CohesiveDetector;
 import one.util.huntbugs.registry.anno.AssertNoWarning;
 
 /**
@@ -28,7 +29,7 @@ import one.util.huntbugs.registry.anno.AssertNoWarning;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-@AssertNoWarning("CohesiveDetector")
+@AssertNoWarning(CohesiveDetector.MULTIPLE_COMPONENTS)
 public class TestCohesive {
 
     private String field;

@@ -61,14 +61,17 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings("classfanoutcomplexity")
 @RequiredArgsConstructor
-@WarningDefinition(category = "BadPractice", name = "CohesiveDetector", maxScore = CohesiveDetector.MAX_SCORE)
+@WarningDefinition(category = "BadPractice", name = CohesiveDetector.MULTIPLE_COMPONENTS,
+                   maxScore = CohesiveDetector.MAX_SCORE)
 public class CohesiveDetector {
+
+    public static final String MULTIPLE_COMPONENTS = "CohesiveDetectorMultipleComponents";
 
     static final int MAX_SCORE = 50;
 
-    private static final Role.NumberRole COMPONENT_COUNT = Role.NumberRole.forName("COMPONENT_COUNT");
+    private static final Role.NumberRole COUNT = Role.NumberRole.forName("COUNT");
 
-    private static final Role.StringRole COMPONENT_BREAKDOWN = Role.StringRole.forName("COMPONENT_BREAKDOWN");
+    private static final Role.StringRole BREAKDOWN = Role.StringRole.forName("BREAKDOWN");
 
     private final BeanMethods beanMethods;
 
@@ -149,9 +152,7 @@ public class CohesiveDetector {
                                                                          .map(Object::toString)
                                                                          .collect(Collectors.joining(
                                                                                  System.lineSeparator())));
-            cc.report("CohesiveDetector", 0, Roles.TYPE.create(td), COMPONENT_COUNT.create(size),
-                      COMPONENT_BREAKDOWN.create(message)
-                     );
+            cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
         }
     }
 
