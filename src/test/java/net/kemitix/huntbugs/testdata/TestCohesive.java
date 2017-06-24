@@ -21,11 +21,14 @@
 
 package net.kemitix.huntbugs.testdata;
 
+import one.util.huntbugs.registry.anno.AssertNoWarning;
+
 /**
  * A Cohesive class that should not produce any error.
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
+@AssertNoWarning("CohesiveDetector")
 public class TestCohesive {
 
     private String field;
