@@ -143,7 +143,7 @@ public class BeanMethodsImplTest {
         exception.expect(NullPointerException.class);
         exception.expectMessage("methodDefinition");
         //when
-        beanMethods.isNotBeanMethod(null, fields);
+        beanMethods.isNotBeanMethod((MethodDefinition) null, fields);
     }
 
     @Test

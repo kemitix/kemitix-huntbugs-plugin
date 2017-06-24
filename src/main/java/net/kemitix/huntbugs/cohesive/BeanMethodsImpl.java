@@ -44,6 +44,11 @@ class BeanMethodsImpl implements BeanMethods {
         return !isBeanMethod(methodDefinition, fields);
     }
 
+    @Override
+    public final boolean isNotBeanMethod(final String methodName, final Set<String> fields) {
+        return !isBeanMethod(methodName, fields);
+    }
+
     private boolean isBeanMethod(final MethodDefinition methodDefinition, final Set<String> fields) {
         return isBeanMethod(methodSignature.create(methodDefinition), fields);
     }

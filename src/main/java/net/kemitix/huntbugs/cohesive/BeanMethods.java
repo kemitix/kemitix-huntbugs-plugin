@@ -45,6 +45,18 @@ public interface BeanMethods {
     boolean isNotBeanMethod(MethodDefinition methodDefinition, Set<String> fields);
 
     /**
+     * Identify if the method is a bean method or not.
+     *
+     * <p>Bean methods are the standard getters and setters for a field, including the boolean is* variants.</p>
+     *
+     * @param methodName the method to examine
+     * @param fields     the data fields of the class
+     *
+     * @return true if the method matches the pattern for a bean method.
+     */
+    boolean isNotBeanMethod(String methodName, Set<String> fields);
+
+    /**
      * Create an instance of the default implementation of {@link BeanMethods}.
      *
      * @param methodSignature the method signature builder

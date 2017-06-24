@@ -69,11 +69,11 @@ public final class Component {
     /**
      * Gets all the methods in the component.
      *
-     * @return a comma delimited string of method signatures
+     * @return a set of strings of method signatures
      */
-    public String methods() {
+    public Set<String> methods() {
         return members.stream()
                       .filter(member -> member.contains("("))
-                      .collect(Collectors.joining(", "));
+                      .collect(Collectors.toSet());
     }
 }

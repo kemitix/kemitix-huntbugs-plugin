@@ -87,6 +87,8 @@ public class CohesiveDetector {
 
     private final Map<String, Set<String>> usedByMethod;
 
+    private final Set<String> fields = new HashSet<>();
+
     /**
      * Default constructor.
      */
@@ -107,7 +109,8 @@ public class CohesiveDetector {
      */
     @ClassVisitor(order = VisitOrder.BEFORE)
     public void init(final TypeDefinition td) {
-        final Set<String> fields = getDeclaredFieldNames(td);
+        fields.clear();
+        fields.addAll(getDeclaredFieldNames(td));
         final Predicate<MethodDefinition> isNonBeanMethod =
                 methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
         final Predicate<MethodDefinition> isNotConstructor =
@@ -149,6 +152,11 @@ public class CohesiveDetector {
         if (size > 1) {
             final String message = components.stream()
                                              .map(Component::methods)
+                                             .map(methods -> methods.stream()
+                                                                    .filter(method -> beanMethods.isNotBeanMethod(
+                                                                            method, fields))
+                                                                    .collect(Collectors.toSet()))
+                                             .map(methods -> String.join(", ", methods))
                                              .collect(Collectors.joining(System.lineSeparator()));
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
         }
