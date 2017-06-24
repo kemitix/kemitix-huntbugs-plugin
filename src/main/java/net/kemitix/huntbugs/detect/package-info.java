@@ -19,24 +19,4 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.kemitix.huntbugs;
-
-import one.util.huntbugs.spi.HuntBugsPlugin;
-
-/**
- * HuntBugs plugin marker for the Cohesive detector.
- *
- * @author Paul Campbell (pcampbell@kemitix.net)
- */
-public class CohesivePlugin implements HuntBugsPlugin {
-
-    @Override
-    public final String name() {
-        return "Cohesive Detector";
-    }
-
-    @Override
-    public final String detectorPackage() {
-        return "net.kemitix.huntbugs.detect";
-    }
-}
+package net.kemitix.huntbugs.detect;

@@ -8,6 +8,7 @@ import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.assembler.metadata.TypeReference;
 import com.strobel.decompiler.ast.AstCode;
 import com.strobel.decompiler.ast.Expression;
+import net.kemitix.huntbugs.detect.CohesiveDetector;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -89,11 +90,14 @@ public class CohesiveDetectorTest {
     @Mock
     private MethodReference methodReference;
 
+    @Mock
+    private Analyser analyser;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper,
-                                        nonPrivateMethodNames, usedByMethod
+                                        analyser, nonPrivateMethodNames, usedByMethod
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
         expression = new Expression(AstCode.Nop, null, 0);

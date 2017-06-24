@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.kemitix.huntbugs.cohesive;
+package net.kemitix.huntbugs.detect;
 
 import com.strobel.assembler.metadata.FieldDefinition;
 import com.strobel.assembler.metadata.FieldReference;
@@ -29,12 +29,21 @@ import com.strobel.assembler.metadata.MethodReference;
 import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.decompiler.ast.Expression;
 import lombok.RequiredArgsConstructor;
+import net.kemitix.huntbugs.cohesive.Analyser;
+import net.kemitix.huntbugs.cohesive.AnalysisResult;
+import net.kemitix.huntbugs.cohesive.BeanMethods;
+import net.kemitix.huntbugs.cohesive.Component;
+import net.kemitix.huntbugs.cohesive.MethodDefinitionWrapper;
+import net.kemitix.huntbugs.cohesive.MethodSignature;
+import net.kemitix.huntbugs.cohesive.TypeDefinitionWrapper;
 import one.util.huntbugs.registry.ClassContext;
 import one.util.huntbugs.registry.anno.AstNodes;
 import one.util.huntbugs.registry.anno.AstVisitor;
 import one.util.huntbugs.registry.anno.ClassVisitor;
 import one.util.huntbugs.registry.anno.VisitOrder;
 import one.util.huntbugs.registry.anno.WarningDefinition;
+import one.util.huntbugs.warning.Role;
+import one.util.huntbugs.warning.Roles;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,11 +59,16 @@ import java.util.stream.Collectors;
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
+@SuppressWarnings("classfanoutcomplexity")
 @RequiredArgsConstructor
-@WarningDefinition(category = "?", name = "CohesiveDetector", maxScore = CohesiveDetector.MAX_SCORE)
+@WarningDefinition(category = "BadPractice", name = "CohesiveDetector", maxScore = CohesiveDetector.MAX_SCORE)
 public class CohesiveDetector {
 
-    static final int MAX_SCORE = 100;
+    static final int MAX_SCORE = 50;
+
+    private static final Role.NumberRole COMPONENT_COUNT = Role.NumberRole.forName("COMPONENT_COUNT");
+
+    private static final Role.StringRole COMPONENT_BREAKDOWN = Role.StringRole.forName("COMPONENT_BREAKDOWN");
 
     private final BeanMethods beanMethods;
 
@@ -64,6 +78,8 @@ public class CohesiveDetector {
 
     private final MethodDefinitionWrapper methodDefinitionWrapper;
 
+    private final Analyser analyser;
+
     private final Set<String> nonPrivateMethodNames;
 
     private final Map<String, Set<String>> usedByMethod;
@@ -72,12 +88,13 @@ public class CohesiveDetector {
      * Default constructor.
      */
     public CohesiveDetector() {
-        methodSignature = new DefaultMethodSignature();
-        beanMethods = new BeanMethodsImpl(methodSignature);
-        typeDefinitionWrapper = new TypeDefinitionWrapperImpl();
-        methodDefinitionWrapper = new MethodDefinitionWrapperImpl();
+        methodSignature = MethodSignature.defaultInstance();
+        beanMethods = BeanMethods.defaultInstance(methodSignature);
+        typeDefinitionWrapper = TypeDefinitionWrapper.defaultInstance();
+        methodDefinitionWrapper = MethodDefinitionWrapper.defaultInstance();
         nonPrivateMethodNames = new HashSet<>();
         usedByMethod = new HashMap<>();
+        analyser = Analyser.defaultInstance();
     }
 
     /**
@@ -118,22 +135,24 @@ public class CohesiveDetector {
     /**
      * Analyse the results of scanning the class.
      *
+     * @param td the class
      * @param cc the context for reporting errors
      */
     @ClassVisitor(order = VisitOrder.AFTER)
-    public void analyse(final ClassContext cc) {
-        nonPrivateMethodNames.stream()
-                             .map(m -> "method: " + m)
-                             .forEach(System.out::println);
-        usedByMethod.keySet()
-                    .forEach(method -> {
-                        System.out.println("method = " + method);
-                        usedByMethod.get(method)
-                                    .forEach(used -> {
-                                        System.out.println("  used = " + used);
-                                    });
-                    });
-        System.out.println();
+    public void analyse(final TypeDefinition td, final ClassContext cc) {
+        final AnalysisResult analysisResult = analyser.analyse(usedByMethod, nonPrivateMethodNames);
+        final Set<Component> components = analysisResult.getComponents();
+        final int size = components.size();
+        if (size > 1) {
+            final String format = "Class consists of %d discrete components:%n%s";
+            final String message = String.format(format, size, components.stream()
+                                                                         .map(Object::toString)
+                                                                         .collect(Collectors.joining(
+                                                                                 System.lineSeparator())));
+            cc.report("CohesiveDetector", 0, Roles.TYPE.create(td), COMPONENT_COUNT.create(size),
+                      COMPONENT_BREAKDOWN.create(message)
+                     );
+        }
     }
 
     /**
