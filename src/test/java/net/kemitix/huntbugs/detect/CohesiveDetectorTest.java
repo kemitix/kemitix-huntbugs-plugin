@@ -1,4 +1,4 @@
-package net.kemitix.huntbugs.cohesive;
+package net.kemitix.huntbugs.detect;
 
 import com.strobel.assembler.metadata.FieldReference;
 import com.strobel.assembler.metadata.MemberReference;
@@ -8,7 +8,13 @@ import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.assembler.metadata.TypeReference;
 import com.strobel.decompiler.ast.AstCode;
 import com.strobel.decompiler.ast.Expression;
-import net.kemitix.huntbugs.detect.CohesiveDetector;
+import net.kemitix.huntbugs.cohesive.Analyser;
+import net.kemitix.huntbugs.cohesive.BeanMethods;
+import net.kemitix.huntbugs.cohesive.BreakdownFormatter;
+import net.kemitix.huntbugs.cohesive.MethodDefinitionWrapper;
+import net.kemitix.huntbugs.cohesive.MethodFilter;
+import net.kemitix.huntbugs.cohesive.MethodSignature;
+import net.kemitix.huntbugs.cohesive.TypeDefinitionWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -96,14 +102,12 @@ public class CohesiveDetectorTest {
     @Mock
     private BreakdownFormatter breakdownFormatter;
 
-    @Mock
-    private MethodFilter methodFilter;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper, breakdownFormatter,
-                                        analyser, nonPrivateMethodNames, usedByMethod, methodFilter
+        final MethodFilter methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);
+        detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper,
+                                        breakdownFormatter, analyser, nonPrivateMethodNames, usedByMethod, methodFilter
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
         expression = new Expression(AstCode.Nop, null, 0);
