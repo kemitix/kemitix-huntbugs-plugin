@@ -1,10 +1,9 @@
 package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.MethodDefinition;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -12,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -20,9 +20,6 @@ import static org.mockito.BDDMockito.given;
  * @author Paul Campbell (pcampbell@kemitix.net).
  */
 public class BeanMethodsImplTest {
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private BeanMethods beanMethods;
 
@@ -139,19 +136,29 @@ public class BeanMethodsImplTest {
 
     @Test
     public void NPEWhenMethodDefinitionIsNull() {
-        //given
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("methodDefinition");
         //when
-        beanMethods.isNotBeanMethod((MethodDefinition) null, fields);
+        final ThrowableAssert.ThrowingCallable action =
+                () -> beanMethods.isNotBeanMethod((MethodDefinition) null, fields);
+        //then
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("methodDefinition");
     }
 
     @Test
-    public void NPEWhenFieldsIsNull() {
-        //given
-        exception.expect(NullPointerException.class);
-        exception.expectMessage("fields");
+    public void NPEWhenFieldsIsNullWithMethodDefinition() {
         //when
-        beanMethods.isNotBeanMethod(methodDefinition, null);
+        final ThrowableAssert.ThrowingCallable action = () -> beanMethods.isNotBeanMethod(methodDefinition, null);
+        //then
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("fields");
+    }
+
+    @Test
+    public void NPEWhenFieldsIsNullWithMethodName() {
+        //when
+        final ThrowableAssert.ThrowingCallable action = () -> beanMethods.isNotBeanMethod("methodName", null);
+        //then
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("fields");
     }
 }
