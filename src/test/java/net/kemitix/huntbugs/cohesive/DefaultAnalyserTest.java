@@ -7,9 +7,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -138,5 +140,19 @@ public class DefaultAnalyserTest {
         //when
         assertThatNullPointerException().isThrownBy(action)
                                         .withMessage("fields");
+    }
+
+    @Test
+    public void constructorIsIgnored() {
+        //given
+        final String constructor = "(v)v";
+        hasNonPrivateMethod(constructor, false, setOf());
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).isEmpty();
     }
 }
