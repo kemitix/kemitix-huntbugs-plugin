@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -111,8 +111,8 @@ public class DefaultAnalyserTest {
         //when
         final ThrowableAssert.ThrowingCallable action = () -> analyser.analyse(null, nonPrivateMethods, fields);
         //then
-        assertThatThrownBy(action).isInstanceOf(NullPointerException.class)
-                                  .hasMessage("usedByMethod");
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("usedByMethod");
     }
 
     @Test
@@ -120,8 +120,8 @@ public class DefaultAnalyserTest {
         //when
         final ThrowableAssert.ThrowingCallable action = () -> analyser.analyse(usedByMethod, null, fields);
         //then
-        assertThatThrownBy(action).isInstanceOf(NullPointerException.class)
-                                  .hasMessage("nonPrivateMethods");
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("nonPrivateMethods");
     }
 
     @Test
@@ -138,5 +138,14 @@ public class DefaultAnalyserTest {
 
     private void whenIsABeanMethod(final String method, final boolean isBeanMethod) {
         given(beanMethods.isNotBeanMethod(eq(method), any())).willReturn(!isBeanMethod);
+    }
+
+    @Test
+    public void requiresNonNullFields() {
+        //when
+        final ThrowableAssert.ThrowingCallable action = () -> analyser.analyse(usedByMethod, nonPrivateMethods, null);
+        //when
+        assertThatNullPointerException().isThrownBy(action)
+                                        .withMessage("fields");
     }
 }
