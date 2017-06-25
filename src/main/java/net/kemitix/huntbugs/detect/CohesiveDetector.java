@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -152,14 +153,25 @@ public class CohesiveDetector {
         if (size > 1) {
             final String message = components.stream()
                                              .map(Component::methods)
-                                             .map(methods -> methods.stream()
-                                                                    .filter(method -> beanMethods.isNotBeanMethod(
-                                                                            method, fields))
-                                                                    .collect(Collectors.toSet()))
-                                             .map(methods -> String.join(", ", methods))
+                                             .map(excludeBeanMethods())
+                                             .map(commaSeparated())
                                              .collect(Collectors.joining(System.lineSeparator()));
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
         }
+    }
+
+    private Function<Set<String>, String> commaSeparated() {
+        return methods -> String.join(", ", methods);
+    }
+
+    private Function<Set<String>, Set<String>> excludeBeanMethods() {
+        return methods -> methods.stream()
+                                 .filter(isNotBeanMethod())
+                                 .collect(Collectors.toSet());
+    }
+
+    private Predicate<String> isNotBeanMethod() {
+        return method -> beanMethods.isNotBeanMethod(method, fields);
     }
 
     /**
