@@ -46,9 +46,11 @@ public interface Analyser {
     /**
      * Create an instance of the default implementation of {@link Analyser}.
      *
+     * @param beanMethods bean method identifier
+     *
      * @return an instance of Analyser
      */
-    static Analyser defaultInstance() {
-        return new DefaultAnalyser();
+    static Analyser defaultInstance(final BeanMethods beanMethods) {
+        return new DefaultAnalyser(beanMethods);
     }
 }

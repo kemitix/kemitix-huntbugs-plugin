@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class DefaultAnalyser implements Analyser {
 
+    private final BeanMethods beanMethods;
+
     @Override
     public final AnalysisResult analyse(
             @NonNull final Map<String, Set<String>> usedByMethod, @NonNull final Set<String> nonPrivateMethods
@@ -53,7 +55,7 @@ class DefaultAnalyser implements Analyser {
             final Map<String, Set<String>> usedByMethod, final Set<String> nonPrivateMethods
                                                    ) {
         return nonPrivateMethods.stream()
-                                .filter(m -> isNotBeanMethod(m, usedByMethod.get(m)))
+                                .filter(m -> beanMethods.isNotBeanMethod(m, usedByMethod.get(m)))
                                 .collect(Collectors.toSet());
     }
 
@@ -65,7 +67,7 @@ class DefaultAnalyser implements Analyser {
     private Set<Component> usedByMethodAsComponents(final Map<String, Set<String>> usedByMethod) {
         return usedByMethod.entrySet()
                            .stream()
-                           .filter(e -> isNotBeanMethod(e.getKey(), usedByMethod.get(e.getKey())))
+                           .filter(e -> beanMethods.isNotBeanMethod(e.getKey(), usedByMethod.get(e.getKey())))
                            .map(this::componentFromEntry)
                            .collect(Collectors.toSet());
     }
@@ -98,37 +100,6 @@ class DefaultAnalyser implements Analyser {
         final Set<String> members = new HashSet<>(entry.getValue());
         members.add(entry.getKey());
         return Component.from(members);
-    }
-
-    private boolean isNotBeanMethod(final String method, final Set<String> fields) {
-        return !isBeanMethod(method, fields);
-    }
-
-    private boolean isBeanMethod(final String method, final Set<String> fields) {
-        if (fields != null && fields.size() == 1) {
-            final String fieldAccessed = fields.toArray(new String[1])[0];
-            final String methodName = method.toLowerCase();
-            return isBeanMethod(methodName, fieldAccessed);
-        } else {
-            return false;
-        }
-    }
-
-    private boolean isBeanMethod(final String method, final String field) {
-        return isSetter(method, field) || isGetter(method, field);
-    }
-
-    private boolean isGetter(final String method, final String field) {
-        final boolean isPlainGetter = method.endsWith(String.format(" get%s()", field));
-        final boolean isBooleanGetter = String.format("java.lang.boolean is%s()", field)
-                                              .equals(method);
-        final boolean isPrimitiveBooleanGetter = String.format("boolean is%s()", field)
-                                                       .equals(method);
-        return isPlainGetter || isBooleanGetter || isPrimitiveBooleanGetter;
-    }
-
-    private boolean isSetter(final String method, final String field) {
-        return method.startsWith("void set" + field + "(");
     }
 
 }

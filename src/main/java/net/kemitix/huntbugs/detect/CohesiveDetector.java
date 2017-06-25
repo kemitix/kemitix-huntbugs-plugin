@@ -107,7 +107,7 @@ public class CohesiveDetector {
         methodDefinitionWrapper = MethodDefinitionWrapper.defaultInstance();
         nonPrivateMethodNames = new HashSet<>();
         usedByMethod = new HashMap<>();
-        analyser = Analyser.defaultInstance();
+        analyser = Analyser.defaultInstance(beanMethods);
     }
 
     /**

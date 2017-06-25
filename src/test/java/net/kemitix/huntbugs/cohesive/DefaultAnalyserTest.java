@@ -4,6 +4,8 @@ import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.util.Sets;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +15,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 
 /**
  * Tests for {@link DefaultAnalyser}.
@@ -29,26 +34,42 @@ public class DefaultAnalyserTest {
 
     private AnalysisResult analysisResult;
 
+    private Set<String> fields = new HashSet<>();
+
+    @Mock
+    private BeanMethods beanMethods;
+
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
         usedByMethod = new HashMap<>();
         nonPrivateMethods = new HashSet<>();
-        analyser = new DefaultAnalyser();
+        analyser = new DefaultAnalyser(beanMethods);
     }
 
     @Test
     public void canDetectNonBeanMethods() {
         //given
         final String beanGetMethod = "java.lang.String getValue()";
+        whenIsABeanMethod(beanGetMethod, true);
         nonPrivateMethods.add(beanGetMethod);
+
         final String beanSetMethod = "void setValue(java.lang.String)";
+        whenIsABeanMethod(beanSetMethod, true);
         nonPrivateMethods.add(beanSetMethod);
+
         final String nonBeanMethod = "void nonBean()";
+        whenIsABeanMethod(nonBeanMethod, false);
         nonPrivateMethods.add(nonBeanMethod);
+
         final String booleanBeanMethod = "java.lang.Boolean isEnabled()";
+        whenIsABeanMethod(booleanBeanMethod, true);
         nonPrivateMethods.add(booleanBeanMethod);
+
         final String primitiveBooleanBeanMethod = "boolean isValid()";
+        whenIsABeanMethod(primitiveBooleanBeanMethod, true);
         nonPrivateMethods.add(primitiveBooleanBeanMethod);
+
         usedByMethod.put(beanGetMethod, setOf("value"));
         usedByMethod.put(beanSetMethod, setOf("value"));
         usedByMethod.put(nonBeanMethod, setOf("other"));
@@ -72,6 +93,7 @@ public class DefaultAnalyserTest {
     public void canDetectASingleComponentFromASingleMethodAndField() {
         //given
         final String method = "getValue()";
+        whenIsABeanMethod(method, false);
         nonPrivateMethods.add(method);
         final String fieldName = "fieldName";
         usedByMethod.put(method, setOf(fieldName));
@@ -109,9 +131,14 @@ public class DefaultAnalyserTest {
         //given
         final String method = "getValue()";
         nonPrivateMethods.add(method);
+        whenIsABeanMethod(method, false);
         //when
         performAnalysis();
         //then
         // no exception is thrown
+    }
+
+    private void whenIsABeanMethod(final String method, final boolean isBeanMethod) {
+        given(beanMethods.isNotBeanMethod(eq(method), any())).willReturn(!isBeanMethod);
     }
 }

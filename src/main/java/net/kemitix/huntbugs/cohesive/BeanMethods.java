@@ -26,7 +26,7 @@ import com.strobel.assembler.metadata.MethodDefinition;
 import java.util.Set;
 
 /**
- * Detect Bean methods..
+ * Detect Bean methods.
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
