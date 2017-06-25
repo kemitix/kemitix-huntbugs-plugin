@@ -45,6 +45,7 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 import one.util.huntbugs.warning.Role;
 import one.util.huntbugs.warning.Roles;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +69,13 @@ public class CohesiveDetector {
 
     public static final String MULTIPLE_COMPONENTS = "CohesiveDetectorMultipleComponents";
 
-    static final int MAX_SCORE = 50;
+    public static final int MAX_SCORE = 50;
+
+    private static final String LIST_START = "<ul><li>";
+
+    private static final String LIST_END = "</li></ul>";
+
+    private static final String LIST_MID = "</li><li>";
 
     private static final Role.NumberRole COUNT = Role.NumberRole.forName("COUNT");
 
@@ -151,27 +158,20 @@ public class CohesiveDetector {
         final Set<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {
-            final String message = components.stream()
-                                             .map(Component::methods)
-                                             .map(excludeBeanMethods())
-                                             .map(commaSeparated())
-                                             .collect(Collectors.joining(System.lineSeparator()));
+            final String message = htmlUnsortedList(components.stream()
+                                                              .map(Component::methods)
+                                                              .map(asNestedList())
+                                                              .collect(Collectors.toSet()));
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
         }
     }
 
-    private Function<Set<String>, String> commaSeparated() {
-        return methods -> String.join(", ", methods);
+    private Function<Set<String>, String> asNestedList() {
+        return this::htmlUnsortedList;
     }
 
-    private Function<Set<String>, Set<String>> excludeBeanMethods() {
-        return methods -> methods.stream()
-                                 .filter(isNotBeanMethod())
-                                 .collect(Collectors.toSet());
-    }
-
-    private Predicate<String> isNotBeanMethod() {
-        return method -> beanMethods.isNotBeanMethod(method, fields);
+    private String htmlUnsortedList(final Collection<String> items) {
+        return LIST_START + String.join(LIST_MID, items) + LIST_END;
     }
 
     /**
