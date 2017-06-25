@@ -35,6 +35,7 @@ import net.kemitix.huntbugs.cohesive.BeanMethods;
 import net.kemitix.huntbugs.cohesive.BreakdownFormatter;
 import net.kemitix.huntbugs.cohesive.Component;
 import net.kemitix.huntbugs.cohesive.MethodDefinitionWrapper;
+import net.kemitix.huntbugs.cohesive.MethodFilter;
 import net.kemitix.huntbugs.cohesive.MethodSignature;
 import net.kemitix.huntbugs.cohesive.TypeDefinitionWrapper;
 import one.util.huntbugs.registry.ClassContext;
@@ -92,6 +93,8 @@ public class CohesiveDetector {
 
     private final Set<String> fields = new HashSet<>();
 
+    private final MethodFilter methodFilter;
+
     /**
      * Default constructor.
      */
@@ -104,6 +107,7 @@ public class CohesiveDetector {
         usedByMethod = new HashMap<>();
         analyser = Analyser.defaultInstance(beanMethods);
         breakdownFormatter = BreakdownFormatter.defaultInstance();
+        methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);
     }
 
     /**
@@ -117,14 +121,12 @@ public class CohesiveDetector {
         fields.addAll(getDeclaredFieldNames(td));
         final Predicate<MethodDefinition> isNonBeanMethod =
                 methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
-        final Predicate<MethodDefinition> isNotConstructor =
-                methodDefinition -> !methodDefinitionWrapper.isConstructor(methodDefinition);
         final Predicate<MethodDefinition> isNonPrivate =
                 methodDefinition -> !methodDefinitionWrapper.isPrivate(methodDefinition);
         usedByMethod.clear();
         nonPrivateMethodNames.clear();
         nonPrivateMethodNames.addAll(getDeclaredMethods(td).stream()
-                                                           .filter(isNotConstructor)
+                                                           .filter(methodFilter.isConstructor(false))
                                                            .filter(isNonPrivate)
                                                            .filter(isNonBeanMethod)
                                                            .map(this::createSignature)
