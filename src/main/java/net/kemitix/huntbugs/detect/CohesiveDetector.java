@@ -154,7 +154,7 @@ public class CohesiveDetector {
      */
     @ClassVisitor(order = VisitOrder.AFTER)
     public void analyse(final TypeDefinition td, final ClassContext cc) {
-        final AnalysisResult analysisResult = analyser.analyse(usedByMethod, nonPrivateMethodNames);
+        final AnalysisResult analysisResult = analyser.analyse(usedByMethod, nonPrivateMethodNames, fields);
         final Set<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {

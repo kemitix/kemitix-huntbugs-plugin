@@ -25,10 +25,12 @@ import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -39,15 +41,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class DefaultAnalyser implements Analyser {
 
+    public static final String PARENS_OPEN = "(";
+
     private final BeanMethods beanMethods;
 
     @Override
     public final AnalysisResult analyse(
-            @NonNull final Map<String, Set<String>> usedByMethod, @NonNull final Set<String> nonPrivateMethods
-                             ) {
+            @NonNull final Map<String, Set<String>> usedByMethod, @NonNull final Set<String> nonPrivateMethods,
+            @NonNull final Set<String> fields
+                                       ) {
         final AnalysisResult result = new AnalysisResult();
         result.addNonBeanMethods(getNonBeanNonPrivateMethods(usedByMethod, nonPrivateMethods));
-        result.addComponents(findComponents(usedByMethod));
+        result.addComponents(findComponents(usedByMethod, fields));
         return result;
     }
 
@@ -55,19 +60,62 @@ class DefaultAnalyser implements Analyser {
             final Map<String, Set<String>> usedByMethod, final Set<String> nonPrivateMethods
                                                    ) {
         return nonPrivateMethods.stream()
-                                .filter(m -> beanMethods.isNotBeanMethod(m, usedByMethod.get(m)))
+                                .filter(m -> isNotABeanMethod(m, membersUsedByMethod(usedByMethod, m)))
                                 .collect(Collectors.toSet());
     }
 
-    private Set<Component> findComponents(final Map<String, Set<String>> usedByMethod) {
-        final Set<Component> components = usedByMethodAsComponents(usedByMethod);
-        return mergeComponents(components);
+    private Set<String> membersUsedByMethod(final Map<String, Set<String>> usedByMethod, final String methodName) {
+        return Optional.ofNullable(usedByMethod.get(methodName))
+                       .orElseGet(Collections::emptySet);
+    }
+
+    private boolean isNotABeanMethod(final String m, final Set<String> fields) {
+        return beanMethods.isNotBeanMethod(m, fields);
+    }
+
+    private Set<Component> findComponents(
+            final Map<String, Set<String>> usedByMethod, final Set<String> fields
+                                         ) {
+        final Set<Component> allComponents = usedByMethodAsComponents(usedByMethod);
+        final Set<Component> mergedComponents = mergeComponents(allComponents);
+        return filterComponents(mergedComponents, fields);
+    }
+
+    private Set<Component> filterComponents(
+            final Set<Component> components, final Set<String> fields
+                                           ) {
+        return components.stream()
+                         .map(removeConstructors())
+                         .map(removeBeanMethods(fields))
+                         .collect(Collectors.toSet());
+    }
+
+    private Function<Component, Component> removeBeanMethods(final Set<String> fields) {
+        return c -> Component.from(c.getMembers()
+                                    .stream()
+                                    .filter(m -> isAField(m) || isNotABeanMethod(m, fields))
+                                    .collect(Collectors.toSet()));
+    }
+
+    private Function<Component, Component> removeConstructors() {
+        return c -> Component.from(c.getMembers()
+                                    .stream()
+                                    .filter(m -> isAField(m) || isNotAConstructor(m))
+                                    .collect(Collectors.toSet()));
+    }
+
+    private boolean isNotAConstructor(final String m) {
+        return m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN);
+    }
+
+    private boolean isAField(final String m) {
+        return !m.contains(PARENS_OPEN);
     }
 
     private Set<Component> usedByMethodAsComponents(final Map<String, Set<String>> usedByMethod) {
         return usedByMethod.entrySet()
                            .stream()
-                           .filter(e -> beanMethods.isNotBeanMethod(e.getKey(), usedByMethod.get(e.getKey())))
+                           .filter(e -> isNotABeanMethod(e.getKey(), membersUsedByMethod(usedByMethod, e.getKey())))
                            .map(this::componentFromEntry)
                            .collect(Collectors.toSet());
     }

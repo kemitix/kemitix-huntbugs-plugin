@@ -36,11 +36,12 @@ public interface Analyser {
      *
      * @param usedByMethod      a map of fields and methods used grouped by each method
      * @param nonPrivateMethods a list of methods
+     * @param fields            the fields in the class
      *
      * @return an AnalysisResult object
      */
     AnalysisResult analyse(
-            Map<String, Set<String>> usedByMethod, Set<String> nonPrivateMethods
+            Map<String, Set<String>> usedByMethod, Set<String> nonPrivateMethods, Set<String> fields
                           );
 
     /**

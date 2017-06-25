@@ -45,7 +45,7 @@ class BeanMethodsImpl implements BeanMethods {
     }
 
     @Override
-    public final boolean isNotBeanMethod(final String methodName, final Set<String> fields) {
+    public final boolean isNotBeanMethod(final String methodName, @NonNull final Set<String> fields) {
         return !isBeanMethod(methodName, fields);
     }
 

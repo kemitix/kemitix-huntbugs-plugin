@@ -86,7 +86,7 @@ public class DefaultAnalyserTest {
     }
 
     private void performAnalysis() {
-        analysisResult = analyser.analyse(usedByMethod, nonPrivateMethods);
+        analysisResult = analyser.analyse(usedByMethod, nonPrivateMethods, fields);
     }
 
     @Test
@@ -109,8 +109,7 @@ public class DefaultAnalyserTest {
     @Test
     public void requiresNonNullUseByMethod() {
         //when
-        final ThrowableAssert.ThrowingCallable action =
-                () -> analyser.analyse(null, nonPrivateMethods);
+        final ThrowableAssert.ThrowingCallable action = () -> analyser.analyse(null, nonPrivateMethods, fields);
         //then
         assertThatThrownBy(action).isInstanceOf(NullPointerException.class)
                                   .hasMessage("usedByMethod");
@@ -119,8 +118,7 @@ public class DefaultAnalyserTest {
     @Test
     public void requiresNonNullNonPrivateMethods() {
         //when
-        final ThrowableAssert.ThrowingCallable action =
-                () -> analyser.analyse(usedByMethod, null);
+        final ThrowableAssert.ThrowingCallable action = () -> analyser.analyse(usedByMethod, null, fields);
         //then
         assertThatThrownBy(action).isInstanceOf(NullPointerException.class)
                                   .hasMessage("nonPrivateMethods");
