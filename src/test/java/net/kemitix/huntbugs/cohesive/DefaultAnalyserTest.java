@@ -51,34 +51,32 @@ public class DefaultAnalyserTest {
     public void canDetectNonBeanMethods() {
         //given
         final String beanGetMethod = "java.lang.String getValue()";
-        whenIsABeanMethod(beanGetMethod, true);
-        nonPrivateMethods.add(beanGetMethod);
+        hasNonPrivateMethod(beanGetMethod, true, setOf("value"));
 
         final String beanSetMethod = "void setValue(java.lang.String)";
-        whenIsABeanMethod(beanSetMethod, true);
-        nonPrivateMethods.add(beanSetMethod);
+        hasNonPrivateMethod(beanSetMethod, true, setOf("value"));
 
         final String nonBeanMethod = "void nonBean()";
-        whenIsABeanMethod(nonBeanMethod, false);
-        nonPrivateMethods.add(nonBeanMethod);
+        hasNonPrivateMethod(nonBeanMethod, false, setOf("other"));
 
         final String booleanBeanMethod = "java.lang.Boolean isEnabled()";
-        whenIsABeanMethod(booleanBeanMethod, true);
-        nonPrivateMethods.add(booleanBeanMethod);
+        hasNonPrivateMethod(booleanBeanMethod, true, setOf("enabled"));
 
         final String primitiveBooleanBeanMethod = "boolean isValid()";
-        whenIsABeanMethod(primitiveBooleanBeanMethod, true);
-        nonPrivateMethods.add(primitiveBooleanBeanMethod);
+        hasNonPrivateMethod(primitiveBooleanBeanMethod, true, setOf("valid"));
 
-        usedByMethod.put(beanGetMethod, setOf("value"));
-        usedByMethod.put(beanSetMethod, setOf("value"));
-        usedByMethod.put(nonBeanMethod, setOf("other"));
-        usedByMethod.put(booleanBeanMethod, setOf("enabled"));
-        usedByMethod.put(primitiveBooleanBeanMethod, setOf("valid"));
         //when
         performAnalysis();
         //then
         assertThat(analysisResult.getNonBeanMethods()).containsExactly(nonBeanMethod);
+    }
+
+    private void hasNonPrivateMethod(
+            final String beanGetMethod, final boolean isBeanMethod, final Set<String> used
+                                    ) {
+        given(beanMethods.isNotBeanMethod(eq(beanGetMethod), any())).willReturn(!isBeanMethod);
+        nonPrivateMethods.add(beanGetMethod);
+        usedByMethod.put(beanGetMethod, used);
     }
 
     private HashSet<String> setOf(final String... values) {
@@ -93,10 +91,8 @@ public class DefaultAnalyserTest {
     public void canDetectASingleComponentFromASingleMethodAndField() {
         //given
         final String method = "getValue()";
-        whenIsABeanMethod(method, false);
-        nonPrivateMethods.add(method);
         final String fieldName = "fieldName";
-        usedByMethod.put(method, setOf(fieldName));
+        hasNonPrivateMethod(method, false, setOf(fieldName));
         //when
         performAnalysis();
         //then
@@ -128,16 +124,11 @@ public class DefaultAnalyserTest {
     public void acceptWhenANonPrivateMethodsIsNotInUsedByMethod() {
         //given
         final String method = "getValue()";
-        nonPrivateMethods.add(method);
-        whenIsABeanMethod(method, false);
+        hasNonPrivateMethod(method, false, setOf());
         //when
         performAnalysis();
         //then
         // no exception is thrown
-    }
-
-    private void whenIsABeanMethod(final String method, final boolean isBeanMethod) {
-        given(beanMethods.isNotBeanMethod(eq(method), any())).willReturn(!isBeanMethod);
     }
 
     @Test
