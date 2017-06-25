@@ -93,10 +93,13 @@ public class CohesiveDetectorTest {
     @Mock
     private Analyser analyser;
 
+    @Mock
+    private BreakdownFormatter breakdownFormatter;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper,
+        detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper, breakdownFormatter,
                                         analyser, nonPrivateMethodNames, usedByMethod
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);

@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import net.kemitix.huntbugs.cohesive.Analyser;
 import net.kemitix.huntbugs.cohesive.AnalysisResult;
 import net.kemitix.huntbugs.cohesive.BeanMethods;
+import net.kemitix.huntbugs.cohesive.BreakdownFormatter;
 import net.kemitix.huntbugs.cohesive.Component;
 import net.kemitix.huntbugs.cohesive.MethodDefinitionWrapper;
 import net.kemitix.huntbugs.cohesive.MethodSignature;
@@ -45,14 +46,12 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 import one.util.huntbugs.warning.Role;
 import one.util.huntbugs.warning.Roles;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -71,12 +70,6 @@ public class CohesiveDetector {
 
     public static final int MAX_SCORE = 50;
 
-    private static final String LIST_START = "<ul><li>";
-
-    private static final String LIST_END = "</li></ul>";
-
-    private static final String LIST_MID = "</li><li>";
-
     private static final Role.NumberRole COUNT = Role.NumberRole.forName("COUNT");
 
     private static final Role.StringRole BREAKDOWN = Role.StringRole.forName("BREAKDOWN");
@@ -88,6 +81,8 @@ public class CohesiveDetector {
     private final TypeDefinitionWrapper typeDefinitionWrapper;
 
     private final MethodDefinitionWrapper methodDefinitionWrapper;
+
+    private final BreakdownFormatter breakdownFormatter;
 
     private final Analyser analyser;
 
@@ -108,6 +103,7 @@ public class CohesiveDetector {
         nonPrivateMethodNames = new HashSet<>();
         usedByMethod = new HashMap<>();
         analyser = Analyser.defaultInstance(beanMethods);
+        breakdownFormatter = BreakdownFormatter.defaultInstance();
     }
 
     /**
@@ -158,20 +154,11 @@ public class CohesiveDetector {
         final Set<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {
-            final String message = htmlUnsortedList(components.stream()
-                                                              .map(Component::methods)
-                                                              .map(asNestedList())
-                                                              .collect(Collectors.toSet()));
-            cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size), BREAKDOWN.create(message));
+            cc.report(
+                    MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size),
+                    BREAKDOWN.create(breakdownFormatter.apply(components))
+                     );
         }
-    }
-
-    private Function<Set<String>, String> asNestedList() {
-        return this::htmlUnsortedList;
-    }
-
-    private String htmlUnsortedList(final Collection<String> items) {
-        return LIST_START + String.join(LIST_MID, items) + LIST_END;
     }
 
     /**
