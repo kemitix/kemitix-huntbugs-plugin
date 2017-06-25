@@ -55,4 +55,15 @@ public interface MethodFilter {
      * method definition is not a constructor and the value is {@code false}.
      */
     Predicate<MethodDefinition> isConstructor(boolean value);
+
+    /**
+     * Creates a predicate to filter {@link MethodDefinition}s by whether they are private or not.
+     *
+     * @param value {@code true} when the predicate should return {@code true} for a private method or {@code false}
+     *              when the predicate should return {@code true} for non-private methods
+     *
+     * @return {@code true} only when the method definition is private and the value is {@code true}, or when the method
+     * definition is not private and the value is {@code false}.
+     */
+    Predicate<MethodDefinition> isPrivate(boolean value);
 }

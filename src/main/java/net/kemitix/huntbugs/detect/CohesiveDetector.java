@@ -121,13 +121,11 @@ public class CohesiveDetector {
         fields.addAll(getDeclaredFieldNames(td));
         final Predicate<MethodDefinition> isNonBeanMethod =
                 methodDefinition -> beanMethods.isNotBeanMethod(methodDefinition, fields);
-        final Predicate<MethodDefinition> isNonPrivate =
-                methodDefinition -> !methodDefinitionWrapper.isPrivate(methodDefinition);
         usedByMethod.clear();
         nonPrivateMethodNames.clear();
         nonPrivateMethodNames.addAll(getDeclaredMethods(td).stream()
                                                            .filter(methodFilter.isConstructor(false))
-                                                           .filter(isNonPrivate)
+                                                           .filter(methodFilter.isPrivate(false))
                                                            .filter(isNonBeanMethod)
                                                            .map(this::createSignature)
                                                            .collect(Collectors.toSet()));

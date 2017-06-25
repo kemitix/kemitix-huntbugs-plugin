@@ -29,12 +29,20 @@ public class MethodFilterImplTest {
     @Mock
     private MethodDefinition nonConstructor;
 
+    @Mock
+    private MethodDefinition privateMethod;
+
+    @Mock
+    private MethodDefinition nonPrivateMethod;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         methodFilter = new MethodFilterImpl(methodDefinitionWrapper);
         given(methodDefinitionWrapper.isConstructor(constructor)).willReturn(true);
         given(methodDefinitionWrapper.isConstructor(nonConstructor)).willReturn(false);
+        given(methodDefinitionWrapper.isPrivate(privateMethod)).willReturn(true);
+        given(methodDefinitionWrapper.isPrivate(nonPrivateMethod)).willReturn(false);
     }
 
     @Test
@@ -63,5 +71,33 @@ public class MethodFilterImplTest {
 
     private Predicate<? super MethodDefinition> isNotConstructor() {
         return methodFilter.isConstructor(false);
+    }
+
+    @Test
+    public void isPrivateReturnsTrueWhenIsPrivate() {
+        assertThat(isPrivate().test(privateMethod)).isTrue();
+    }
+
+    @Test
+    public void isPrivateReturnsFalseWhenIsNotPrivate() {
+        assertThat(isPrivate().test(nonPrivateMethod)).isFalse();
+    }
+
+    @Test
+    public void isNotPrivateReturnsFalseWhenIsPrivate() {
+        assertThat(isNotPrivate().test(privateMethod)).isFalse();
+    }
+
+    @Test
+    public void isNotPrivateReturnsTrueWhenIsNotPrivate() {
+        assertThat(isNotPrivate().test(nonPrivateMethod)).isTrue();
+    }
+
+    private Predicate<? super MethodDefinition> isPrivate() {
+        return methodFilter.isPrivate(true);
+    }
+
+    private Predicate<? super MethodDefinition> isNotPrivate() {
+        return methodFilter.isPrivate(false);
     }
 }

@@ -40,4 +40,9 @@ class MethodFilterImpl implements MethodFilter {
     public Predicate<MethodDefinition> isConstructor(final boolean value) {
         return methodDefinition -> value == methodDefinitionWrapper.isConstructor(methodDefinition);
     }
+
+    @Override
+    public Predicate<MethodDefinition> isPrivate(final boolean value) {
+        return methodDefinition -> value == methodDefinitionWrapper.isPrivate(methodDefinition);
+    }
 }
