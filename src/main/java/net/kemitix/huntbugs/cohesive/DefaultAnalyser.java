@@ -70,7 +70,7 @@ class DefaultAnalyser implements Analyser {
     }
 
     private boolean isNotABeanMethod(final String m, final Set<String> fields) {
-        return beanMethods.isNotBeanMethod(m, fields);
+        return isAField(m) || beanMethods.isNotBeanMethod(m, fields);
     }
 
     private Set<Component> findComponents(
@@ -93,19 +93,19 @@ class DefaultAnalyser implements Analyser {
     private Function<Component, Component> removeBeanMethods(final Set<String> fields) {
         return c -> Component.from(c.getMembers()
                                     .stream()
-                                    .filter(m -> isAField(m) || isNotABeanMethod(m, fields))
+                                    .filter(m -> isNotABeanMethod(m, fields))
                                     .collect(Collectors.toSet()));
     }
 
     private Function<Component, Component> removeConstructors() {
         return c -> Component.from(c.getMembers()
                                     .stream()
-                                    .filter(m -> isAField(m) || isNotAConstructor(m))
+                                    .filter(m -> isNotAConstructor(m))
                                     .collect(Collectors.toSet()));
     }
 
     private boolean isNotAConstructor(final String m) {
-        return m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN);
+        return isAField(m) || (m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN));
     }
 
     private boolean isAField(final String m) {
