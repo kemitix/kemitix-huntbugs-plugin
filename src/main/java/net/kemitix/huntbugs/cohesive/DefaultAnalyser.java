@@ -106,7 +106,11 @@ class DefaultAnalyser implements Analyser {
     }
 
     private Predicate<String> isNotAConstructor() {
-        return m -> isAField(m) || (m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN));
+        return isAConstructor().negate();
+    }
+
+    private Predicate<String> isAConstructor() {
+        return m -> m.startsWith(PARENS_OPEN);
     }
 
     private boolean isAField(final String m) {
