@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class DefaultAnalyser implements Analyser {
 
-    public static final String PARENS_OPEN = "(";
+    private static final String PARENS_OPEN = "(";
 
     private final BeanMethods beanMethods;
 
