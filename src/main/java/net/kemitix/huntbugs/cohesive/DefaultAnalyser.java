@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -100,12 +101,12 @@ class DefaultAnalyser implements Analyser {
     private Function<Component, Component> removeConstructors() {
         return c -> Component.from(c.getMembers()
                                     .stream()
-                                    .filter(m -> isNotAConstructor(m))
+                                    .filter(isNotAConstructor())
                                     .collect(Collectors.toSet()));
     }
 
-    private boolean isNotAConstructor(final String m) {
-        return isAField(m) || (m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN));
+    private Predicate<String> isNotAConstructor() {
+        return m -> isAField(m) || (m.contains(PARENS_OPEN) && !m.startsWith(PARENS_OPEN));
     }
 
     private boolean isAField(final String m) {
