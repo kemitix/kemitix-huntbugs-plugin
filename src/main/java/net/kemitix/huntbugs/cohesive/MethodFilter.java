@@ -54,5 +54,5 @@ public interface MethodFilter {
      * @return {@code true} only when the method definition is a constructor and the value is {@code true}, or when the
      * method definition is not a constructor and the value is {@code false}.
      */
-    Predicate<? super MethodDefinition> isConstructor(boolean value);
+    Predicate<MethodDefinition> isConstructor(boolean value);
 }

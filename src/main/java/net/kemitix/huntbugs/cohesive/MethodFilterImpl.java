@@ -37,7 +37,7 @@ class MethodFilterImpl implements MethodFilter {
     private final MethodDefinitionWrapper methodDefinitionWrapper;
 
     @Override
-    public Predicate<? super MethodDefinition> isConstructor(final boolean value) {
+    public Predicate<MethodDefinition> isConstructor(final boolean value) {
         return methodDefinition -> value == methodDefinitionWrapper.isConstructor(methodDefinition);
     }
 }
