@@ -84,7 +84,7 @@ public class CohesiveDetector {
 
     private final MethodDefinitionWrapper methodDefinitionWrapper;
 
-    private final BreakdownFormatter breakdownFormatter;
+    private final BreakdownFormatter htmlBreakdownFormatter;
 
     private final Analyser analyser;
 
@@ -107,7 +107,7 @@ public class CohesiveDetector {
         nonPrivateMethodNames = new HashSet<>();
         usedByMethod = new HashMap<>();
         analyser = Analyser.defaultInstance(beanMethods);
-        breakdownFormatter = BreakdownFormatter.defaultInstance();
+        htmlBreakdownFormatter = BreakdownFormatter.html();
         methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);
     }
 
@@ -170,7 +170,7 @@ public class CohesiveDetector {
         final int size = components.size();
         if (size > 1) {
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size),
-                      BREAKDOWN.create(breakdownFormatter.apply(components))
+                      BREAKDOWN.create(htmlBreakdownFormatter.apply(components))
                      );
         }
     }

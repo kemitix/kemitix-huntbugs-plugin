@@ -32,11 +32,20 @@ import java.util.function.Function;
 public interface BreakdownFormatter extends Function<Collection<Component>, String> {
 
     /**
-     * Create an instance of the default implementation of {@link BreakdownFormatter}.
+     * Create an instance of the HTML implementation of {@link BreakdownFormatter}.
      *
      * @return an instance of BreakdownFormatter
      */
-    static BreakdownFormatter defaultInstance() {
+    static BreakdownFormatter html() {
         return new HtmlBreakdownFormatter();
+    }
+
+    /**
+     * Create an instance of the Plain Text implementation of {@link BreakdownFormatter}.
+     *
+     * @return an instance of BreakdownFormatter
+     */
+    static BreakdownFormatter plaintext() {
+        return new PlainTextBreakdownFormatter();
     }
 }
