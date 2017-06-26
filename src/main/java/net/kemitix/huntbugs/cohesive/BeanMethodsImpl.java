@@ -25,7 +25,7 @@ import com.strobel.assembler.metadata.MethodDefinition;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Implementation of BeanMethods.
@@ -39,21 +39,21 @@ class BeanMethodsImpl implements BeanMethods {
 
     @Override
     public final boolean isNotBeanMethod(
-            @NonNull final MethodDefinition methodDefinition, @NonNull final Set<String> fields
+            @NonNull final MethodDefinition methodDefinition, @NonNull final Collection<String> fields
                                         ) {
         return !isBeanMethod(methodDefinition, fields);
     }
 
     @Override
-    public final boolean isNotBeanMethod(final String methodName, @NonNull final Set<String> fields) {
+    public final boolean isNotBeanMethod(final String methodName, @NonNull final Collection<String> fields) {
         return !isBeanMethod(methodName, fields);
     }
 
-    private boolean isBeanMethod(final MethodDefinition methodDefinition, final Set<String> fields) {
+    private boolean isBeanMethod(final MethodDefinition methodDefinition, final Collection<String> fields) {
         return isBeanMethod(methodSignature.create(methodDefinition), fields);
     }
 
-    private boolean isBeanMethod(final String method, final Set<String> fields) {
+    private boolean isBeanMethod(final String method, final Collection<String> fields) {
         final String methodName = method.toLowerCase();
         return fields.stream()
                      .anyMatch(field -> isBeanMethod(methodName, field));

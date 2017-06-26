@@ -23,7 +23,7 @@ package net.kemitix.huntbugs.cohesive;
 
 import com.strobel.assembler.metadata.MethodDefinition;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Detect Bean methods.
@@ -42,7 +42,7 @@ public interface BeanMethods {
      *
      * @return true if the method matches the pattern for a bean method.
      */
-    boolean isNotBeanMethod(MethodDefinition methodDefinition, Set<String> fields);
+    boolean isNotBeanMethod(MethodDefinition methodDefinition, Collection<String> fields);
 
     /**
      * Identify if the method is a bean method or not.
@@ -54,7 +54,7 @@ public interface BeanMethods {
      *
      * @return true if the method matches the pattern for a bean method.
      */
-    boolean isNotBeanMethod(String methodName, Set<String> fields);
+    boolean isNotBeanMethod(String methodName, Collection<String> fields);
 
     /**
      * Create an instance of the default implementation of {@link BeanMethods}.

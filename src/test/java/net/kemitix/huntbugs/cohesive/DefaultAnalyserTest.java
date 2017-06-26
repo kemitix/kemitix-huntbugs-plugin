@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +31,7 @@ public class DefaultAnalyserTest {
 
     private Analyser analyser;
 
-    private Map<String, Set<String>> usedByMethod;
+    private Map<String, Collection<String>> usedByMethod;
 
     private Set<String> nonPrivateMethods;
 
@@ -98,7 +99,7 @@ public class DefaultAnalyserTest {
         //when
         performAnalysis();
         //then
-        final Set<Component> components = analysisResult.getComponents();
+        final Collection<Component> components = analysisResult.getComponents();
         assertThat(components).hasSize(1);
         final Component component = components.toArray(new Component[]{})[0];
         assertThat(component.getMembers()).containsExactlyInAnyOrder(method, fieldName);

@@ -21,7 +21,7 @@
 
 package net.kemitix.huntbugs.cohesive;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.function.Function;
 
 /**
@@ -29,7 +29,7 @@ import java.util.function.Function;
  *
  * @author Paul Campbell (pcampbell@kemitix.net).
  */
-public interface BreakdownFormatter extends Function<Set<Component>, String> {
+public interface BreakdownFormatter extends Function<Collection<Component>, String> {
 
     /**
      * Create an instance of the default implementation of {@link BreakdownFormatter}.

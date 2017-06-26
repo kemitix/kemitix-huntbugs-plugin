@@ -26,8 +26,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,8 +50,8 @@ class DefaultAnalyser implements Analyser {
 
     @Override
     public final AnalysisResult analyse(
-            @NonNull final Map<String, Set<String>> usedByMethod, @NonNull final Set<String> nonPrivateMethods,
-            @NonNull final Set<String> fields
+            @NonNull final Map<String, Collection<String>> usedByMethod,
+            @NonNull final Collection<String> nonPrivateMethods, @NonNull final Collection<String> fields
                                        ) {
         final AnalysisResult result = new AnalysisResult();
         result.addNonBeanMethods(getNonBeanNonPrivateMethods(usedByMethod, nonPrivateMethods));
@@ -59,34 +59,36 @@ class DefaultAnalyser implements Analyser {
         return result;
     }
 
-    private Set<String> getNonBeanNonPrivateMethods(
-            final Map<String, Set<String>> usedByMethod, final Set<String> nonPrivateMethods
-                                                   ) {
+    private Collection<String> getNonBeanNonPrivateMethods(
+            final Map<String, Collection<String>> usedByMethod, final Collection<String> nonPrivateMethods
+                                                          ) {
         return nonPrivateMethods.stream()
                                 .filter(m -> isNotABeanMethod(m, membersUsedByMethod(usedByMethod, m)))
                                 .collect(Collectors.toSet());
     }
 
-    private Set<String> membersUsedByMethod(final Map<String, Set<String>> usedByMethod, final String methodName) {
+    private Collection<String> membersUsedByMethod(
+            final Map<String, Collection<String>> usedByMethod, final String methodName
+                                                  ) {
         return Optional.ofNullable(usedByMethod.get(methodName))
                        .orElseGet(Collections::emptySet);
     }
 
-    private boolean isNotABeanMethod(final String m, final Set<String> fields) {
+    private boolean isNotABeanMethod(final String m, final Collection<String> fields) {
         return isAField(m) || beanMethods.isNotBeanMethod(m, fields);
     }
 
-    private Set<Component> findComponents(
-            final Map<String, Set<String>> usedByMethod, final Set<String> fields
-                                         ) {
-        final Set<Component> allComponents = usedByMethodAsComponents(usedByMethod);
-        final Set<Component> mergedComponents = mergeComponents(allComponents);
+    private Collection<Component> findComponents(
+            final Map<String, Collection<String>> usedByMethod, final Collection<String> fields
+                                                ) {
+        final Collection<Component> allComponents = usedByMethodAsComponents(usedByMethod);
+        final Collection<Component> mergedComponents = mergeComponents(allComponents);
         return filterComponents(mergedComponents, fields);
     }
 
-    private Set<Component> filterComponents(
-            final Set<Component> components, final Set<String> fields
-                                           ) {
+    private Collection<Component> filterComponents(
+            final Collection<Component> components, final Collection<String> fields
+                                                  ) {
         return components.stream()
                          .map(removeBaseObjectMethods())
                          .map(removeConstructors())
@@ -115,7 +117,7 @@ class DefaultAnalyser implements Analyser {
         return m -> m.matches(pattern);
     }
 
-    private Function<Component, Component> removeBeanMethods(final Set<String> fields) {
+    private Function<Component, Component> removeBeanMethods(final Collection<String> fields) {
         return c -> Component.from(c.getMembers()
                                     .stream()
                                     .filter(m -> isNotABeanMethod(m, fields))
@@ -141,7 +143,7 @@ class DefaultAnalyser implements Analyser {
         return !m.contains(PARENS_OPEN);
     }
 
-    private Set<Component> usedByMethodAsComponents(final Map<String, Set<String>> usedByMethod) {
+    private Collection<Component> usedByMethodAsComponents(final Map<String, Collection<String>> usedByMethod) {
         return usedByMethod.entrySet()
                            .stream()
                            .filter(e -> isNotABeanMethod(e.getKey(), membersUsedByMethod(usedByMethod, e.getKey())))
@@ -149,8 +151,8 @@ class DefaultAnalyser implements Analyser {
                            .collect(Collectors.toSet());
     }
 
-    private Set<Component> mergeComponents(final Set<Component> components) {
-        final Set<Component> merged = new HashSet<>();
+    private Collection<Component> mergeComponents(final Collection<Component> components) {
+        final Collection<Component> merged = Sets.newHashSet();
         components.forEach(component -> {
             final Optional<Component> existing = merged.stream()
                                                        .filter(target -> overlap(component, target))
@@ -173,8 +175,8 @@ class DefaultAnalyser implements Analyser {
         return !hasCommonMembers;
     }
 
-    private Component componentFromEntry(final Map.Entry<String, Set<String>> entry) {
-        final Set<String> members = new HashSet<>(entry.getValue());
+    private Component componentFromEntry(final Map.Entry<String, Collection<String>> entry) {
+        final Collection<String> members = Sets.newHashSet(entry.getValue());
         members.add(entry.getKey());
         return Component.from(members);
     }

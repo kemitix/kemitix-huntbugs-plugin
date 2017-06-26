@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +51,7 @@ public class CohesiveDetectorTest {
 
     private Set<String> nonPrivateMethodNames = new HashSet<>();
 
-    private Map<String, Set<String>> usedByMethod = new HashMap<>();
+    private Map<String, Collection<String>> usedByMethod = new HashMap<>();
 
     @Mock
     private TypeDefinition typeDefinition;

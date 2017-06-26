@@ -21,8 +21,8 @@
 
 package net.kemitix.huntbugs.cohesive;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Analyses the method invocations of a class to determine the cohesiveness of a class..
@@ -41,7 +41,8 @@ public interface Analyser {
      * @return an AnalysisResult object
      */
     AnalysisResult analyse(
-            Map<String, Set<String>> usedByMethod, Set<String> nonPrivateMethods, Set<String> fields
+            Map<String, Collection<String>> usedByMethod, Collection<String> nonPrivateMethods,
+            Collection<String> fields
                           );
 
     /**

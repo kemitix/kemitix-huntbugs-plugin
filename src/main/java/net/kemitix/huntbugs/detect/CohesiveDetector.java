@@ -47,6 +47,7 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 import one.util.huntbugs.warning.Role;
 import one.util.huntbugs.warning.Roles;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -89,7 +90,7 @@ public class CohesiveDetector {
 
     private final Set<String> nonPrivateMethodNames;
 
-    private final Map<String, Set<String>> usedByMethod;
+    private final Map<String, Collection<String>> usedByMethod;
 
     private final Set<String> fields = new HashSet<>();
 
@@ -153,7 +154,7 @@ public class CohesiveDetector {
     @ClassVisitor(order = VisitOrder.AFTER)
     public void analyse(final TypeDefinition td, final ClassContext cc) {
         final AnalysisResult analysisResult = analyser.analyse(usedByMethod, nonPrivateMethodNames, fields);
-        final Set<Component> components = analysisResult.getComponents();
+        final Collection<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {
             cc.report(

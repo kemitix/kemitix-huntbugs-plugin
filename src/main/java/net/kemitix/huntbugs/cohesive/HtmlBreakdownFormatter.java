@@ -22,9 +22,11 @@
 package net.kemitix.huntbugs.cohesive;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -36,21 +38,59 @@ class HtmlBreakdownFormatter implements BreakdownFormatter {
 
     private static final String LIST_START = "<ul><li>";
 
-    private static final String LIST_SEPARATOR = "</li><li>";
+    private static final String LIST_SEPARATOR = "</li>\n<li>";
 
-    private static final String LIST_END = "</li></ul>";
+    private static final String LIST_END = "</li>\n</ul>\n";
 
     @Override
-    public String apply(final Set<Component> components) {
+    public String apply(final Collection<Component> components) {
         final AtomicInteger counter = new AtomicInteger();
         return unsortedList(components.stream()
-                                      .map(Component::methods)
-                                      .map(asNestedList(counter))
+                                      .map(formatComponent(counter))
                                       .collect(Collectors.toList()));
     }
 
-    private Function<Set<String>, String> asNestedList(final AtomicInteger counter) {
-        return items -> String.format("#%d: %s", counter.incrementAndGet(), unsortedList(items));
+    private Function<Component, String> formatComponent(final AtomicInteger counter) {
+        return c -> {
+            return formatMethods(counter, methods(c.getMembers())) + formatFields(fields(c.getMembers()));
+        };
+    }
+
+    private List<String> fields(final Set<String> members) {
+        return members.stream()
+                      .sorted()
+                      .filter(isNotMethod())
+                      .collect(Collectors.toList());
+    }
+
+    private Predicate<String> isNotMethod() {
+        return isMethod().negate();
+    }
+
+    private String formatFields(final Collection<String> fields) {
+        if (fields.size() > 0) {
+            return "Using fields: " + String.join(", ", fields);
+        }
+        return "";
+    }
+
+    private String formatMethods(final AtomicInteger counter, final Collection<String> methods) {
+        return asNestedList(counter).apply(methods);
+    }
+
+    private Function<Collection<String>, String> asNestedList(final AtomicInteger counter) {
+        return items -> String.format("#%d:\n%s", counter.incrementAndGet(), unsortedList(items));
+    }
+
+    private List<String> methods(final Set<String> members) {
+        return members.stream()
+                      .sorted()
+                      .filter(isMethod())
+                      .collect(Collectors.toList());
+    }
+
+    private Predicate<String> isMethod() {
+        return m -> m.contains("(");
     }
 
     private String unsortedList(final Collection<String> items) {

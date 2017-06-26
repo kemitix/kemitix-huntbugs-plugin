@@ -21,9 +21,8 @@
 
 package net.kemitix.huntbugs.cohesive;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Represents the results of performing a Cohesive Analysis on a class.
@@ -32,19 +31,17 @@ import java.util.Set;
  */
 public final class AnalysisResult {
 
-    private static final String DELIMITER = ", ";
+    private Collection<String> nonBeanMethods = new HashSet<>();
 
-    private Set<String> nonBeanMethods = new HashSet<>();
-
-    private Set<Component> components = new HashSet<>();
+    private Collection<Component> components = new HashSet<>();
 
     /**
      * Gets the components found within a class.
      *
      * @return a set of components
      */
-    public Set<Component> getComponents() {
-        return Collections.unmodifiableSet(components);
+    public Collection<Component> getComponents() {
+        return new HashSet<>(components);
     }
 
     /**
@@ -52,8 +49,8 @@ public final class AnalysisResult {
      *
      * @return a set of method signatures
      */
-    public Set<String> getNonBeanMethods() {
-        return Collections.unmodifiableSet(nonBeanMethods);
+    public Collection<String> getNonBeanMethods() {
+        return new HashSet<>(nonBeanMethods);
     }
 
     /**
@@ -61,7 +58,7 @@ public final class AnalysisResult {
      *
      * @param methods the methods to add
      */
-    public void addNonBeanMethods(final Set<String> methods) {
+    public void addNonBeanMethods(final Collection<String> methods) {
         nonBeanMethods.addAll(methods);
     }
 
@@ -70,7 +67,7 @@ public final class AnalysisResult {
      *
      * @param items the components to add
      */
-    public void addComponents(final Set<Component> items) {
+    public void addComponents(final Collection<Component> items) {
         components.addAll(items);
     }
 }
