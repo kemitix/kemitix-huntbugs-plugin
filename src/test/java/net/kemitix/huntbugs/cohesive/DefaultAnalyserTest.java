@@ -74,11 +74,11 @@ public class DefaultAnalyserTest {
     }
 
     private void hasNonPrivateMethod(
-            final String beanGetMethod, final boolean isBeanMethod, final Set<String> used
+            final String methodSignature, final boolean isBeanMethod, final Set<String> used
                                     ) {
-        given(beanMethods.isNotBeanMethod(eq(beanGetMethod), any())).willReturn(!isBeanMethod);
-        nonPrivateMethods.add(beanGetMethod);
-        usedByMethod.put(beanGetMethod, used);
+        given(beanMethods.isNotBeanMethod(eq(methodSignature), any())).willReturn(!isBeanMethod);
+        nonPrivateMethods.add(methodSignature);
+        usedByMethod.put(methodSignature, used);
     }
 
     private HashSet<String> setOf(final String... values) {
@@ -154,5 +154,57 @@ public class DefaultAnalyserTest {
         assertThat(components).hasSize(1);
         final Component component = components.get(0);
         assertThat(component.getMembers()).isEmpty();
+    }
+
+    @Test
+    public void toStringIsIgnored() {
+        //given
+        hasNonPrivateMethod("toString()Ljava/lang/String;", false, setOf("name", "id"));
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).containsExactlyInAnyOrder("name", "id");
+    }
+
+    @Test
+    public void equalsIsIgnored() {
+        //given
+        hasNonPrivateMethod("equals(Ljava/lang/Object;)Z", false, setOf("name", "id"));
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).containsExactlyInAnyOrder("name", "id");
+    }
+
+    @Test
+    public void hashCodeIsIgnored() {
+        //given
+        hasNonPrivateMethod("hashCode()I", false, setOf("name", "id"));
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).containsExactlyInAnyOrder("name", "id");
+    }
+
+    @Test
+    public void cloneIsIgnored() {
+        //given
+        hasNonPrivateMethod("clone()Ljava/lang/Object;", false, setOf("name", "id"));
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).containsExactlyInAnyOrder("name", "id");
     }
 }

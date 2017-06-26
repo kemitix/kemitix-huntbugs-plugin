@@ -25,8 +25,10 @@ import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -86,9 +88,31 @@ class DefaultAnalyser implements Analyser {
             final Set<Component> components, final Set<String> fields
                                            ) {
         return components.stream()
+                         .map(removeBaseObjectMethods())
                          .map(removeConstructors())
                          .map(removeBeanMethods(fields))
                          .collect(Collectors.toSet());
+    }
+
+    private Function<Component, Component> removeBaseObjectMethods() {
+        return c -> Component.from(c.getMembers()
+                                    .stream()
+                                    .filter(isNotBaseObjectMethod())
+                                    .collect(Collectors.toSet()));
+    }
+
+    private Predicate<String> isNotBaseObjectMethod() {
+        return isBaseObjectMethod().negate();
+    }
+
+    private Predicate<String> isBaseObjectMethod() {
+        final List<String> signatures = new ArrayList<>();
+        signatures.add("toString\\(\\)Ljava/lang/String;");
+        signatures.add("equals\\(Ljava/lang/Object;\\)Z");
+        signatures.add("hashCode\\(\\)I");
+        signatures.add("clone\\(\\)Ljava/lang/Object;");
+        final String pattern = "^(" + String.join("|", signatures) + ")$";
+        return m -> m.matches(pattern);
     }
 
     private Function<Component, Component> removeBeanMethods(final Set<String> fields) {
