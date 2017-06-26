@@ -43,4 +43,9 @@ class TypeDefinitionWrapperImpl implements TypeDefinitionWrapper {
     public final List<MethodDefinition> getDeclaredMethods(final TypeDefinition typeDefinition) {
         return typeDefinition.getDeclaredMethods();
     }
+
+    @Override
+    public String getName(final TypeDefinition typeDefinition) {
+        return typeDefinition.getName();
+    }
 }

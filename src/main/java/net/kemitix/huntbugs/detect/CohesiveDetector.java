@@ -115,9 +115,14 @@ public class CohesiveDetector {
      * Prepare to analyse the class.
      *
      * @param td the class
+     *
+     * @return false if the class is annotated with {@code @Generated}
      */
     @ClassVisitor(order = VisitOrder.BEFORE)
-    public void init(final TypeDefinition td) {
+    public boolean init(final TypeDefinition td) {
+        if (skipClass(td)) {
+            return false;
+        }
         fields.clear();
         fields.addAll(getDeclaredFieldNames(td));
         usedByMethod.clear();
@@ -128,6 +133,13 @@ public class CohesiveDetector {
                                                            .filter(isNotBeanMethod())
                                                            .map(this::createSignature)
                                                            .collect(Collectors.toSet()));
+        return true;
+    }
+
+    private boolean skipClass(final TypeDefinition td) {
+        return Optional.ofNullable(typeDefinitionWrapper.getName(td))
+                       .orElse("")
+                       .startsWith("Immutable");
     }
 
     private Predicate<MethodDefinition> isNotBeanMethod() {
@@ -157,9 +169,8 @@ public class CohesiveDetector {
         final Collection<Component> components = analysisResult.getComponents();
         final int size = components.size();
         if (size > 1) {
-            cc.report(
-                    MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size),
-                    BREAKDOWN.create(breakdownFormatter.apply(components))
+            cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size),
+                      BREAKDOWN.create(breakdownFormatter.apply(components))
                      );
         }
     }

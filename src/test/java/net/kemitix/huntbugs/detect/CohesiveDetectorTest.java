@@ -125,8 +125,9 @@ public class CohesiveDetectorTest {
         //given
         hasPrivateMethod();
         //when
-        detector.init(typeDefinition);
+        final boolean init = detector.init(typeDefinition);
         //then
+        assertThat(init).isTrue();
         assertThat(nonPrivateMethodNames).doesNotContain(privateMethodSignature);
     }
 
@@ -157,8 +158,9 @@ public class CohesiveDetectorTest {
         //given
         hasConstructor();
         //when
-        detector.init(typeDefinition);
+        final boolean init = detector.init(typeDefinition);
         //then
+        assertThat(init).isTrue();
         assertThat(nonPrivateMethodNames).doesNotContain(constructorMethodSignature);
     }
 
@@ -174,8 +176,9 @@ public class CohesiveDetectorTest {
         //given
         hasNonPrivateNonBeanMethod();
         //when
-        detector.init(typeDefinition);
+        final boolean init = detector.init(typeDefinition);
         //then
+        assertThat(init).isTrue();
         assertThat(nonPrivateMethodNames).contains(nonPrivateMethodSignature);
     }
 
@@ -196,8 +199,9 @@ public class CohesiveDetectorTest {
         //given
         hasBeanMethod();
         //when
-        detector.init(typeDefinition);
+        final boolean init = detector.init(typeDefinition);
         //then
+        assertThat(init).isTrue();
         assertThat(nonPrivateMethodNames).doesNotContain(beanMethodSignature);
     }
 
@@ -215,9 +219,9 @@ public class CohesiveDetectorTest {
         //given
         hasConstructor();
         //when
-        final boolean result = detector.visit(expression, constructorMethodDefinition);
+        final boolean visit = detector.visit(expression, constructorMethodDefinition);
         //then
-        assertThat(result).isFalse();
+        assertThat(visit).isFalse();
     }
 
     @Test
@@ -225,8 +229,9 @@ public class CohesiveDetectorTest {
         //given
         final String fieldName = hasFieldInSameClass();
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit = detector.visit(expression, nonPrivateMethodDefinition);
         //then
+        assertThat(visit).isTrue();
         assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
         assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(fieldName);
     }
@@ -257,8 +262,9 @@ public class CohesiveDetectorTest {
         setAsFieldReference(fieldName);
         setAsInSameClass(fieldReference, false);
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit = detector.visit(expression, nonPrivateMethodDefinition);
         //then
+        assertThat(visit).isTrue();
         assertThat(usedByMethod).isEmpty();
     }
 
@@ -267,8 +273,9 @@ public class CohesiveDetectorTest {
         //given
         hasMethodCallInSameClass();
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit = detector.visit(expression, nonPrivateMethodDefinition);
         //then
+        assertThat(visit).isTrue();
         assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
         assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(privateMethodSignature);
     }
@@ -293,8 +300,9 @@ public class CohesiveDetectorTest {
         setAsMethodReference(privateMethodSignature);
         setAsInSameClass(methodReference, false);
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit = detector.visit(expression, nonPrivateMethodDefinition);
         //then
+        assertThat(visit).isTrue();
         assertThat(usedByMethod).isEmpty();
     }
 
@@ -303,13 +311,25 @@ public class CohesiveDetectorTest {
         //given
         hasMethodCallInSameClass();
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit1 = detector.visit(expression, nonPrivateMethodDefinition);
         //given
         final String fieldName = hasFieldInSameClass();
         //when
-        detector.visit(expression, nonPrivateMethodDefinition);
+        final boolean visit2 = detector.visit(expression, nonPrivateMethodDefinition);
         //then
+        assertThat(visit1).isTrue();
+        assertThat(visit2).isTrue();
         assertThat(usedByMethod).containsOnlyKeys(nonPrivateMethodSignature);
         assertThat(usedByMethod.get(nonPrivateMethodSignature)).contains(privateMethodSignature, fieldName);
+    }
+
+    @Test
+    public void skipClassesNamedImmutable() {
+        //given
+        given(typeDefinitionWrapper.getName(typeDefinition)).willReturn("ImmutableClass");
+        //when
+        final boolean init = detector.init(typeDefinition);
+        //then
+        assertThat(init).isFalse();
     }
 }

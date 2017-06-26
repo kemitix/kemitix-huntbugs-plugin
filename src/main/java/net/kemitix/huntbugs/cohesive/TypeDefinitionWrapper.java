@@ -62,4 +62,13 @@ public interface TypeDefinitionWrapper {
     static TypeDefinitionWrapper defaultInstance() {
         return new TypeDefinitionWrapperImpl();
     }
+
+    /**
+     * Get the name of the type.
+     *
+     * @param typeDefinition the type definition
+     *
+     * @return a String containing the type's name
+     */
+    String getName(TypeDefinition typeDefinition);
 }

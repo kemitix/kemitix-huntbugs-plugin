@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +22,7 @@ public class TypeDefinitionWrapperImplTest {
 
     private TypeDefinitionWrapper wrapper = new TypeDefinitionWrapperImpl();
 
-    private MyTypeDefinition typeDefinition = new MyTypeDefinition();
+    private MyTypeDefinition typeDefinition;
 
     @Mock
     private FieldDefinition fieldDefinition;
@@ -37,7 +38,7 @@ public class TypeDefinitionWrapperImplTest {
     @Test
     public void canGetDeclaredFields() {
         //given
-        typeDefinition.addDeclaredField(fieldDefinition);
+        typeDefinition = MyTypeDefinition.withField(fieldDefinition);
         //when
         final List<FieldDefinition> declaredFields = wrapper.getDeclaredFields(typeDefinition);
         //then
@@ -47,21 +48,49 @@ public class TypeDefinitionWrapperImplTest {
     @Test
     public void canGetDeclaredMethods() {
         //given
-        typeDefinition.addDeclaredMethod(methodDefinition);
+        typeDefinition = MyTypeDefinition.withMethod(methodDefinition);
         //when
         final List<MethodDefinition> declaredMethods = wrapper.getDeclaredMethods(typeDefinition);
         //then
         assertThat(declaredMethods).containsExactly(methodDefinition);
     }
 
-    private class MyTypeDefinition extends TypeDefinition {
+    private static class MyTypeDefinition extends TypeDefinition {
 
-        void addDeclaredField(final FieldDefinition fieldDefinition) {
-            getDeclaredFieldsInternal().add(fieldDefinition);
+        static MyTypeDefinition withField(final FieldDefinition fieldDefinition) {
+            final MyTypeDefinition typeDefinition = new MyTypeDefinition();
+            typeDefinition.getDeclaredFieldsInternal()
+                          .add(fieldDefinition);
+            return typeDefinition;
         }
 
-        void addDeclaredMethod(final MethodDefinition methodDefinition) {
-            getDeclaredMethodsInternal().add(methodDefinition);
+        static MyTypeDefinition withMethod(final MethodDefinition methodDefinition) {
+            final MyTypeDefinition typeDefinition = new MyTypeDefinition();
+            typeDefinition.getDeclaredMethodsInternal()
+                          .add(methodDefinition);
+            return typeDefinition;
         }
+
+        static MyTypeDefinition withName(final String name) {
+            final MyTypeDefinition typeDefinition = new MyTypeDefinition();
+            typeDefinition.setName(name);
+            return typeDefinition;
+        }
+    }
+
+    @Test
+    public void canGetName() {
+        //given
+        final String name = randomText();
+        typeDefinition = MyTypeDefinition.withName(name);
+        //when
+        final String wrapperName = wrapper.getName(typeDefinition);
+        //then
+        assertThat(wrapperName).isSameAs(name);
+    }
+
+    private String randomText() {
+        return UUID.randomUUID()
+                   .toString();
     }
 }
