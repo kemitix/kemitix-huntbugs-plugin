@@ -158,6 +158,20 @@ public class DefaultAnalyserTest {
     }
 
     @Test
+    public void classInitialiserIsIgnored() {
+        //given
+        final String initialiser = "<clinit>(J)V";
+        hasNonPrivateMethod(initialiser, false, setOf());
+        //when
+        performAnalysis();
+        //then
+        final List<Component> components = new ArrayList<>(analysisResult.getComponents());
+        assertThat(components).hasSize(1);
+        final Component component = components.get(0);
+        assertThat(component.getMembers()).isEmpty();
+    }
+
+    @Test
     public void toStringIsIgnored() {
         //given
         hasNonPrivateMethod("toString()Ljava/lang/String;", false, setOf("name", "id"));

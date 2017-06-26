@@ -128,7 +128,16 @@ class DefaultAnalyser implements Analyser {
         return c -> Component.from(c.getMembers()
                                     .stream()
                                     .filter(isNotAConstructor())
+                                    .filter(isNotClassInitializer())
                                     .collect(Collectors.toSet()));
+    }
+
+    private Predicate<String> isNotClassInitializer() {
+        return isClassInitializer().negate();
+    }
+
+    private Predicate<String> isClassInitializer() {
+        return m -> m.startsWith("<clinit>");
     }
 
     private Predicate<String> isNotAConstructor() {
@@ -136,7 +145,7 @@ class DefaultAnalyser implements Analyser {
     }
 
     private Predicate<String> isAConstructor() {
-        return m -> m.startsWith("<init>(");
+        return m -> m.startsWith("<init>");
     }
 
     private boolean isAField(final String m) {
