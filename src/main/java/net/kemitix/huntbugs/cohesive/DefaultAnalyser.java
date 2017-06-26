@@ -110,7 +110,7 @@ class DefaultAnalyser implements Analyser {
     }
 
     private Predicate<String> isAConstructor() {
-        return m -> m.startsWith(PARENS_OPEN);
+        return m -> m.startsWith("<init>(");
     }
 
     private boolean isAField(final String m) {

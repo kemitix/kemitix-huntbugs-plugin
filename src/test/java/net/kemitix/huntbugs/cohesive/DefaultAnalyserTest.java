@@ -145,7 +145,7 @@ public class DefaultAnalyserTest {
     @Test
     public void constructorIsIgnored() {
         //given
-        final String constructor = "(v)v";
+        final String constructor = "<init>(J)V";
         hasNonPrivateMethod(constructor, false, setOf());
         //when
         performAnalysis();
