@@ -25,7 +25,7 @@ import com.google.common.collect.Sets;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Implementation of {@link ComponentMerger}.
@@ -39,7 +39,7 @@ class ComponentMergerImpl implements ComponentMerger {
         final Collection<Component> merged = Sets.newHashSet();
         components.forEach(component -> {
             final Optional<Component> existing = merged.stream()
-                                                       .filter(target -> overlap(component, target))
+                                                       .filter(membersOverlap(component))
                                                        .findFirst();
             if (existing.isPresent()) {
                 existing.get()
@@ -51,12 +51,13 @@ class ComponentMergerImpl implements ComponentMerger {
         return merged;
     }
 
-    private boolean overlap(final Component a, final Component b) {
-        final Set<String> aMembers = a.getMembers();
-        final Set<String> bMembers = b.getMembers();
-        final boolean hasCommonMembers = Sets.intersection(aMembers, bMembers)
-                                             .isEmpty();
-        return !hasCommonMembers;
+    private Predicate<Component> membersOverlap(final Component component) {
+        return membersDoNotOverlap(component).negate();
+    }
+
+    private Predicate<Component> membersDoNotOverlap(final Component component) {
+        return target -> Sets.intersection(component.getMembers(), target.getMembers())
+                             .isEmpty();
     }
 
 }
