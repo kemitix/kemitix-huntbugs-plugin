@@ -19,38 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.kemitix.huntbugs.cohesive;
+package net.kemitix.huntbugs.testdata;
 
-import com.strobel.assembler.metadata.FieldDefinition;
-import com.strobel.assembler.metadata.MethodDefinition;
-import com.strobel.assembler.metadata.TypeDefinition;
+import net.kemitix.huntbugs.detect.CohesiveDetector;
+import one.util.huntbugs.registry.anno.AssertWarning;
 
-import java.util.List;
+@AssertWarning(CohesiveDetector.MULTIPLE_COMPONENTS)
+class TestCohesiveLombok {
 
-/**
- * Implementation of {@link TypeDefinitionWrapper}.
- *
- * @author Paul Campbell (pcampbell@kemitix.net)
- */
-class TypeDefinitionWrapperImpl implements TypeDefinitionWrapper {
-
-    @Override
-    public final List<FieldDefinition> getDeclaredFields(final TypeDefinition typeDefinition) {
-        return typeDefinition.getDeclaredFields();
-    }
-
-    @Override
-    public final List<MethodDefinition> getDeclaredMethods(final TypeDefinition typeDefinition) {
-        return typeDefinition.getDeclaredMethods();
-    }
-
-    @Override
-    public String getName(final TypeDefinition typeDefinition) {
-        return typeDefinition.getName();
-    }
-
-    @Override
-    public String getFullName(final TypeDefinition typeDefinition) {
-        return typeDefinition.getFullName();
-    }
 }

@@ -71,4 +71,13 @@ public interface TypeDefinitionWrapper {
      * @return a String containing the type's name
      */
     String getName(TypeDefinition typeDefinition);
+
+    /**
+     * Get the fully qualified name of the type.
+     *
+     * @param typeDefinition the type definition
+     *
+     * @return a String containing the type's fully qualified name
+     */
+    String getFullName(TypeDefinition typeDefinition);
 }

@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 
 /**
  * Tests for {@link CohesiveDetector}.
@@ -103,12 +105,16 @@ public class CohesiveDetectorTest {
     @Mock
     private BreakdownFormatter breakdownFormatter;
 
+    @Mock
+    private PrintStream console;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         final MethodFilter methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);
         detector = new CohesiveDetector(beanMethods, methodSignature, typeDefinitionWrapper, methodDefinitionWrapper,
-                                        breakdownFormatter, analyser, nonPrivateMethodNames, usedByMethod, methodFilter
+                                        breakdownFormatter, breakdownFormatter, analyser, nonPrivateMethodNames,
+                                        usedByMethod, methodFilter, console
         );
         given(typeDefinitionWrapper.getDeclaredMethods(typeDefinition)).willReturn(declaredMethods);
         expression = new Expression(AstCode.Nop, null, 0);
@@ -331,5 +337,22 @@ public class CohesiveDetectorTest {
         final boolean init = detector.init(typeDefinition);
         //then
         assertThat(init).isFalse();
+    }
+
+    @Test
+    public void writesClassNameToConsole() {
+        //given
+        final String className = hasClassName();
+        //when
+        final boolean init = detector.init(typeDefinition);
+        //then
+        assertThat(init).isTrue();
+        then(console).should().println("Class: " + className);
+    }
+
+    private String hasClassName() {
+        final String className = randomString();
+        given(typeDefinitionWrapper.getFullName(typeDefinition)).willReturn(className);
+        return className;
     }
 }

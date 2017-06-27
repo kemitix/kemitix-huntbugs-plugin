@@ -47,6 +47,7 @@ import one.util.huntbugs.registry.anno.WarningDefinition;
 import one.util.huntbugs.warning.Role;
 import one.util.huntbugs.warning.Roles;
 
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,6 +87,8 @@ public class CohesiveDetector {
 
     private final BreakdownFormatter htmlBreakdownFormatter;
 
+    private final BreakdownFormatter plainTextBreakdownFormatter;
+
     private final Analyser analyser;
 
     private final Set<String> nonPrivateMethodNames;
@@ -95,6 +98,8 @@ public class CohesiveDetector {
     private final Set<String> fields = new HashSet<>();
 
     private final MethodFilter methodFilter;
+
+    private final PrintStream console;
 
     /**
      * Default constructor.
@@ -108,7 +113,9 @@ public class CohesiveDetector {
         usedByMethod = new HashMap<>();
         analyser = Analyser.defaultInstance(beanMethods);
         htmlBreakdownFormatter = BreakdownFormatter.html();
+        plainTextBreakdownFormatter = BreakdownFormatter.plaintext();
         methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);
+        console = System.out;
     }
 
     /**
@@ -123,6 +130,7 @@ public class CohesiveDetector {
         if (skipClass(td)) {
             return false;
         }
+        console.println("Class: " + typeDefinitionWrapper.getFullName(td));
         fields.clear();
         fields.addAll(getDeclaredFieldNames(td));
         usedByMethod.clear();
@@ -172,6 +180,7 @@ public class CohesiveDetector {
             cc.report(MULTIPLE_COMPONENTS, 0, Roles.TYPE.create(td), COUNT.create(size),
                       BREAKDOWN.create(htmlBreakdownFormatter.apply(components))
                      );
+            console.println(plainTextBreakdownFormatter.apply(components));
         }
     }
 

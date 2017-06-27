@@ -57,6 +57,8 @@ public class TypeDefinitionWrapperImplTest {
 
     private static class MyTypeDefinition extends TypeDefinition {
 
+        private String fullname;
+
         static MyTypeDefinition withField(final FieldDefinition fieldDefinition) {
             final MyTypeDefinition typeDefinition = new MyTypeDefinition();
             typeDefinition.getDeclaredFieldsInternal()
@@ -76,6 +78,17 @@ public class TypeDefinitionWrapperImplTest {
             typeDefinition.setName(name);
             return typeDefinition;
         }
+
+        static MyTypeDefinition withFullName(final String name) {
+            final MyTypeDefinition typeDefinition = new MyTypeDefinition();
+            typeDefinition.fullname = name;
+            return typeDefinition;
+        }
+
+        @Override
+        protected StringBuilder appendName(final StringBuilder sb, final boolean fullName, final boolean dottedName) {
+            return sb.append(fullname);
+        }
     }
 
     @Test
@@ -93,4 +106,17 @@ public class TypeDefinitionWrapperImplTest {
         return UUID.randomUUID()
                    .toString();
     }
+
+    @Test
+    public void canGetFullName() {
+        //given
+        final String name = randomText();
+        typeDefinition = MyTypeDefinition.withFullName(name);
+        assertThat(typeDefinition.getFullName()).isEqualTo(name);
+        //when
+        final String wrapperName = wrapper.getFullName(typeDefinition);
+        //then
+        assertThat(wrapperName).isEqualTo(name);
+    }
+
 }
