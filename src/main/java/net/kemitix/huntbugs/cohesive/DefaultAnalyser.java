@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -47,6 +46,8 @@ class DefaultAnalyser implements Analyser {
     private static final String PARENS_OPEN = "(";
 
     private final BeanMethods beanMethods;
+
+    private final ComponentMerger componentMerger;
 
     @Override
     public final AnalysisResult analyse(
@@ -82,7 +83,7 @@ class DefaultAnalyser implements Analyser {
             final Map<String, Collection<String>> usedByMethod, final Collection<String> fields
                                                 ) {
         final Collection<Component> allComponents = usedByMethodAsComponents(usedByMethod);
-        final Collection<Component> mergedComponents = mergeComponents(allComponents);
+        final Collection<Component> mergedComponents = componentMerger.merge(allComponents);
         return filterComponents(mergedComponents, fields);
     }
 
@@ -158,30 +159,6 @@ class DefaultAnalyser implements Analyser {
                            .filter(e -> isNotABeanMethod(e.getKey(), membersUsedByMethod(usedByMethod, e.getKey())))
                            .map(this::componentFromEntry)
                            .collect(Collectors.toSet());
-    }
-
-    private Collection<Component> mergeComponents(final Collection<Component> components) {
-        final Collection<Component> merged = Sets.newHashSet();
-        components.forEach(component -> {
-            final Optional<Component> existing = merged.stream()
-                                                       .filter(target -> overlap(component, target))
-                                                       .findFirst();
-            if (existing.isPresent()) {
-                existing.get()
-                        .merge(component);
-            } else {
-                merged.add(component);
-            }
-        });
-        return merged;
-    }
-
-    private boolean overlap(final Component a, final Component b) {
-        final Set<String> aMembers = a.getMembers();
-        final Set<String> bMembers = b.getMembers();
-        final boolean hasCommonMembers = Sets.intersection(aMembers, bMembers)
-                                             .isEmpty();
-        return !hasCommonMembers;
     }
 
     private Component componentFromEntry(final Map.Entry<String, Collection<String>> entry) {

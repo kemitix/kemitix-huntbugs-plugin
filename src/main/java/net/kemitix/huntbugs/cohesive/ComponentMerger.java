@@ -22,40 +22,29 @@
 package net.kemitix.huntbugs.cohesive;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
- * Analyses the method invocations of a class to determine the cohesiveness of a class..
+ * Merge components where there is an overlap in members.
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-public interface Analyser {
+public interface ComponentMerger {
 
     /**
-     * Analyse the cohesion of a class from the items used by each method.
+     * Create an instance of the default implementation.
      *
-     * @param usedByMethod      a map of fields and methods used grouped by each method
-     * @param nonPrivateMethods a list of methods
-     * @param fields            the fields in the class
-     *
-     * @return an AnalysisResult object
+     * @return a default implementation
      */
-    AnalysisResult analyse(
-            Map<String, Collection<String>> usedByMethod, Collection<String> nonPrivateMethods,
-            Collection<String> fields
-                          );
-
-    /**
-     * Create an instance of the default implementation of {@link Analyser}.
-     *
-     * @param beanMethods     bean method identifier
-     * @param componentMerger merges overlapping components
-     *
-     * @return an instance of Analyser
-     */
-    static Analyser defaultInstance(
-            final BeanMethods beanMethods, final ComponentMerger componentMerger
-                                   ) {
-        return new DefaultAnalyser(beanMethods, componentMerger);
+    static ComponentMerger defaultInstance() {
+        return new ComponentMergerImpl();
     }
+
+    /**
+     * Merge the components that have overlapping members, removing redundant and empty components.
+     *
+     * @param components the components to merge
+     *
+     * @return a collection of the merged components
+     */
+    Collection<Component> merge(Collection<Component> components);
 }

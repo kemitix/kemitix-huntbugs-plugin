@@ -21,41 +21,42 @@
 
 package net.kemitix.huntbugs.cohesive;
 
+import com.google.common.collect.Sets;
+
 import java.util.Collection;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- * Analyses the method invocations of a class to determine the cohesiveness of a class..
+ * Implementation of {@link ComponentMerger}.
  *
  * @author Paul Campbell (pcampbell@kemitix.net)
  */
-public interface Analyser {
+class ComponentMergerImpl implements ComponentMerger {
 
-    /**
-     * Analyse the cohesion of a class from the items used by each method.
-     *
-     * @param usedByMethod      a map of fields and methods used grouped by each method
-     * @param nonPrivateMethods a list of methods
-     * @param fields            the fields in the class
-     *
-     * @return an AnalysisResult object
-     */
-    AnalysisResult analyse(
-            Map<String, Collection<String>> usedByMethod, Collection<String> nonPrivateMethods,
-            Collection<String> fields
-                          );
-
-    /**
-     * Create an instance of the default implementation of {@link Analyser}.
-     *
-     * @param beanMethods     bean method identifier
-     * @param componentMerger merges overlapping components
-     *
-     * @return an instance of Analyser
-     */
-    static Analyser defaultInstance(
-            final BeanMethods beanMethods, final ComponentMerger componentMerger
-                                   ) {
-        return new DefaultAnalyser(beanMethods, componentMerger);
+    @Override
+    public Collection<Component> merge(final Collection<Component> components) {
+        final Collection<Component> merged = Sets.newHashSet();
+        components.forEach(component -> {
+            final Optional<Component> existing = merged.stream()
+                                                       .filter(target -> overlap(component, target))
+                                                       .findFirst();
+            if (existing.isPresent()) {
+                existing.get()
+                        .merge(component);
+            } else {
+                merged.add(component);
+            }
+        });
+        return merged;
     }
+
+    private boolean overlap(final Component a, final Component b) {
+        final Set<String> aMembers = a.getMembers();
+        final Set<String> bMembers = b.getMembers();
+        final boolean hasCommonMembers = Sets.intersection(aMembers, bMembers)
+                                             .isEmpty();
+        return !hasCommonMembers;
+    }
+
 }

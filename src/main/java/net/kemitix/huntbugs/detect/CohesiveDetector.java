@@ -34,6 +34,7 @@ import net.kemitix.huntbugs.cohesive.AnalysisResult;
 import net.kemitix.huntbugs.cohesive.BeanMethods;
 import net.kemitix.huntbugs.cohesive.BreakdownFormatter;
 import net.kemitix.huntbugs.cohesive.Component;
+import net.kemitix.huntbugs.cohesive.ComponentMerger;
 import net.kemitix.huntbugs.cohesive.MethodDefinitionWrapper;
 import net.kemitix.huntbugs.cohesive.MethodFilter;
 import net.kemitix.huntbugs.cohesive.MethodSignature;
@@ -111,7 +112,7 @@ public class CohesiveDetector {
         methodDefinitionWrapper = MethodDefinitionWrapper.defaultInstance();
         nonPrivateMethodNames = new HashSet<>();
         usedByMethod = new HashMap<>();
-        analyser = Analyser.defaultInstance(beanMethods);
+        analyser = Analyser.defaultInstance(beanMethods, ComponentMerger.defaultInstance());
         htmlBreakdownFormatter = BreakdownFormatter.html();
         plainTextBreakdownFormatter = BreakdownFormatter.plaintext();
         methodFilter = MethodFilter.defaultInstance(methodDefinitionWrapper);

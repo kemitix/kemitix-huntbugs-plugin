@@ -47,7 +47,8 @@ public class DefaultAnalyserTest {
         MockitoAnnotations.initMocks(this);
         usedByMethod = new HashMap<>();
         nonPrivateMethods = new HashSet<>();
-        analyser = new DefaultAnalyser(beanMethods);
+        final ComponentMerger componentMerger = ComponentMerger.defaultInstance();
+        analyser = new DefaultAnalyser(beanMethods, componentMerger);
     }
 
     @Test
