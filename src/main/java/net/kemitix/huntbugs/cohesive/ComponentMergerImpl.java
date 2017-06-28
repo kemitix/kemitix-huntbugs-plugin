@@ -37,17 +37,20 @@ class ComponentMergerImpl implements ComponentMerger {
     @Override
     public Collection<Component> merge(final Collection<Component> components) {
         final Collection<Component> merged = Sets.newHashSet();
-        components.forEach(component -> {
-            final Optional<Component> existing = merged.stream()
-                                                       .filter(membersOverlap(component))
-                                                       .findFirst();
-            if (existing.isPresent()) {
-                existing.get()
-                        .merge(component);
-            } else {
-                merged.add(component);
-            }
-        });
+        components.stream()
+                  .filter(c -> c.getMembers()
+                                .size() > 0)
+                  .forEach(component -> {
+                      final Optional<Component> existing = merged.stream()
+                                                                 .filter(membersOverlap(component))
+                                                                 .findFirst();
+                      if (existing.isPresent()) {
+                          existing.get()
+                                  .merge(component);
+                      } else {
+                          merged.add(component);
+                      }
+                  });
         return merged;
     }
 
