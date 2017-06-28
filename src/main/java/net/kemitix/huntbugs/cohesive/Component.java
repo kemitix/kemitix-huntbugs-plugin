@@ -26,13 +26,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Prepresents a collections of cohesive methods and fields within a class.
+ * Represents a collections of cohesive methods and fields within a class.
  *
  * @author Paul Campbell (pcampbell@kemitix.net).
  */
 public final class Component {
 
-    private Set<String> members = new HashSet<>();
+    private final Set<String> members = new HashSet<>();
 
     /**
      * Create a new component consisting of the members.
@@ -48,20 +48,20 @@ public final class Component {
     }
 
     /**
-     * Get the existing members of the component.
-     *
-     * @return a set of members
-     */
-    Set<String> getMembers() {
-        return new HashSet<>(members);
-    }
-
-    /**
      * Merge the component into this.
      *
      * @param component the component to merge
      */
     void merge(final Component component) {
         members.addAll(component.getMembers());
+    }
+
+    /**
+     * Get the existing members of the component.
+     *
+     * @return a set of members
+     */
+    Set<String> getMembers() {
+        return new HashSet<>(members);
     }
 }
