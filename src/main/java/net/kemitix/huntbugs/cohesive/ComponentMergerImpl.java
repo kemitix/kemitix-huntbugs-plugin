@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link ComponentMerger}.
@@ -39,8 +40,7 @@ class ComponentMergerImpl implements ComponentMerger {
         final int count = components.size();
         final Collection<Component> merged = Sets.newHashSet();
         components.stream()
-                  .filter(c -> c.getMembers()
-                                .size() > 0)
+                  .filter(componentIsNotEmpty())
                   .forEach(component -> {
                       final Optional<Component> existing = merged.stream()
                                                                  .filter(membersOverlap(component))
@@ -53,9 +53,20 @@ class ComponentMergerImpl implements ComponentMerger {
                       }
                   });
         if (merged.size() == count) {
-            return merged;
+            return merged.stream()
+                         .filter(componentIsNotEmpty())
+                         .collect(Collectors.toSet());
         }
         return merge(merged);
+    }
+
+    private Predicate<Component> componentIsNotEmpty() {
+        return componentIsEmpty().negate();
+    }
+
+    private Predicate<Component> componentIsEmpty() {
+        return c -> c.getMembers()
+                     .isEmpty();
     }
 
     private Predicate<Component> membersOverlap(final Component component) {
