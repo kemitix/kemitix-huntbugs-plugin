@@ -6,6 +6,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,12 +34,24 @@ public class ComponentMergerImplTest {
         final Collection<Component> merged = merger.merge(list(component));
         //then
         assertThat(merged).containsExactly(component);
-        assertThat(component.getMembers()).containsExactlyInAnyOrder("member1", "member2");
+        assertThat(unpacked(merged)).contains(list("member1", "member2"));
     }
 
     @SafeVarargs
-    private static <T> Collection<T> list(final T... members) {
+    private static <T> List<T> list(final T... members) {
         return Arrays.asList(members);
+    }
+
+    private List<List<String>> unpacked(final Collection<Component> merged) {
+        return merged.stream()
+                     .map(unpack())
+                     .collect(Collectors.toList());
+    }
+
+    private Function<Component, List<String>> unpack() {
+        return component -> new ArrayList<>(component.getMembers()).stream()
+                                                                   .sorted()
+                                                                   .collect(Collectors.toList());
     }
 
     @Test
@@ -48,8 +63,7 @@ public class ComponentMergerImplTest {
         final Collection<Component> merged = merger.merge(list(a, b));
         //then
         assertThat(merged).containsExactlyInAnyOrder(a, b);
-        assertThat(a.getMembers()).containsExactly("member1");
-        assertThat(b.getMembers()).containsExactly("member2");
+        assertThat(unpacked(merged)).contains(list("member1"), list("member2"));
     }
 
     @Test
@@ -61,8 +75,7 @@ public class ComponentMergerImplTest {
         final Collection<Component> merged = merger.merge(list(a, b));
         //then
         assertThat(merged).hasSize(1);
-        final Component c = new ArrayList<>(merged).get(0);
-        assertThat(c.getMembers()).containsExactlyInAnyOrder("member1", "member2", "member3");
+        assertThat(unpacked(merged)).contains(list("member1", "member2", "member3"));
     }
 
     @Test
@@ -74,8 +87,7 @@ public class ComponentMergerImplTest {
         final Collection<Component> merged = merger.merge(list(a, b));
         //then
         assertThat(merged).hasSize(1);
-        final Component c = new ArrayList<>(merged).get(0);
-        assertThat(c.getMembers()).containsExactly("member1");
+        assertThat(unpacked(merged)).contains(list("member1"));
     }
 
     @Test
@@ -88,7 +100,19 @@ public class ComponentMergerImplTest {
         final Collection<Component> merged = merger.merge(list(a, b, c));
         //then
         assertThat(merged).hasSize(1);
-        final Component d = new ArrayList<>(merged).get(0);
-        assertThat(d.getMembers()).containsExactlyInAnyOrder("member1", "member2", "member3", "member4", "member5");
+        assertThat(unpacked(merged)).contains(list("member1", "member2", "member3", "member4", "member5"));
+    }
+
+    @Test
+    public void componentsAreNotMergedWhenNoOverlap() {
+        //given
+        final Component a = Component.from(list("member1", "member2"));
+        final Component b = Component.from(list("member3", "member4"));
+        final Component c = Component.from(list("member5", "member3"));
+        //when
+        final Collection<Component> merged = merger.merge(list(a, b, c));
+        //then
+        assertThat(merged).hasSize(2);
+        assertThat(unpacked(merged)).contains(list("member1", "member2"), list("member3", "member4", "member5"));
     }
 }
