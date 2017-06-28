@@ -36,6 +36,7 @@ class ComponentMergerImpl implements ComponentMerger {
 
     @Override
     public Collection<Component> merge(final Collection<Component> components) {
+        final int count = components.size();
         final Collection<Component> merged = Sets.newHashSet();
         components.stream()
                   .filter(c -> c.getMembers()
@@ -51,7 +52,10 @@ class ComponentMergerImpl implements ComponentMerger {
                           merged.add(component);
                       }
                   });
-        return merged;
+        if (merged.size() == count) {
+            return merged;
+        }
+        return merge(merged);
     }
 
     private Predicate<Component> membersOverlap(final Component component) {

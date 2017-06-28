@@ -78,4 +78,17 @@ public class ComponentMergerImplTest {
         assertThat(c.getMembers()).containsExactly("member1");
     }
 
+    @Test
+    public void multipleComponentsAreMergedWhenJoinedLater() {
+        //given
+        final Component a = Component.from(list("member1", "member2"));
+        final Component b = Component.from(list("member3", "member4"));
+        final Component c = Component.from(list("member1", "member4", "member5"));
+        //when
+        final Collection<Component> merged = merger.merge(list(a, b, c));
+        //then
+        assertThat(merged).hasSize(1);
+        final Component d = new ArrayList<>(merged).get(0);
+        assertThat(d.getMembers()).containsExactlyInAnyOrder("member1", "member2", "member3", "member4", "member5");
+    }
 }
