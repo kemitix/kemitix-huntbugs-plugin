@@ -160,7 +160,7 @@ public class CohesiveDetectorTest {
     }
 
     @Test
-    public void excludeConstructorMethods() {
+    public void excludeConstructorMethodsFromNonPrivateMethodList() {
         //given
         hasConstructor();
         //when
@@ -175,6 +175,17 @@ public class CohesiveDetectorTest {
         setAsSignature(constructorMethodDefinition, constructorMethodSignature);
         setAsConstructor(constructorMethodDefinition, true);
         declaredMethods.add(constructorMethodDefinition);
+    }
+
+    @Test
+    public void excludeConstructorMethodUsages() {
+        //gi
+        hasConstructor();
+        //when
+        final boolean visit = detector.visit(expression, constructorMethodDefinition);
+        //then
+        assertThat(visit).isFalse();
+        assertThat(usedByMethod.keySet()).doesNotContain(constructorMethodSignature);
     }
 
     @Test
