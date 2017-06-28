@@ -43,6 +43,14 @@ import static org.mockito.BDDMockito.then;
  */
 public class CohesiveDetectorTest {
 
+    private final Set<String> nonPrivateMethodNames = new HashSet<>();
+
+    private final Map<String, Collection<String>> usedByMethod = new HashMap<>();
+
+    private final List<MethodDefinition> declaredMethods = new ArrayList<>();
+
+    private final Set<String> fields = new HashSet<>();
+
     private CohesiveDetector detector;
 
     @Mock
@@ -51,19 +59,11 @@ public class CohesiveDetectorTest {
     @Mock
     private MethodSignature methodSignature;
 
-    private Set<String> nonPrivateMethodNames = new HashSet<>();
-
-    private Map<String, Collection<String>> usedByMethod = new HashMap<>();
-
     @Mock
     private TypeDefinition typeDefinition;
 
-    private List<MethodDefinition> declaredMethods = new ArrayList<>();
-
     @Mock
     private MethodDefinition privateMethodDefinition;
-
-    private Set<String> fields = new HashSet<>();
 
     private String privateMethodSignature;
 
@@ -347,7 +347,8 @@ public class CohesiveDetectorTest {
         final boolean init = detector.init(typeDefinition);
         //then
         assertThat(init).isTrue();
-        then(console).should().println("Class: " + className);
+        then(console).should()
+                     .println("Class: " + className);
     }
 
     private String hasClassName() {
